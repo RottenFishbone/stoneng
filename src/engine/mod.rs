@@ -1,6 +1,13 @@
-use glfw::{Glfw, Window, Context, WindowEvent, Action};
+mod event;
+mod shader;
+mod error;
+//mod renderer;
+
+
+use glfw::{Glfw, Window, Context, WindowEvent};
 use std::sync::mpsc::Receiver;
 
+pub type EngineError = error::EngineError;
 pub type Key = glfw::Key;
 pub type MouseButton = glfw::MouseButton;
 pub type Modifiers = glfw::Modifiers;
@@ -25,55 +32,36 @@ struct Engine<'a> {
     pub game:   &'a mut dyn GameCore
 }
 
-
 impl<'a> Engine<'a> {
-    pub fn handle_events(&mut self) {
-        self.glfw.poll_events();
-        for (_, event) in glfw::flush_messages(&self.events){
-            match event {
-                WindowEvent::Key(Key::Escape, _, Action::Press, _) => { 
-                    self.window.set_should_close(true); 
-                },
-                WindowEvent::Key(key, _, Action::Press, modifiers) => {
-                    self.game.key_down(key, modifiers);
-                },
-                WindowEvent::Key(key, _, Action::Release, modifiers) => {
-                    self.game.key_up(key, modifiers);
-                },
-                WindowEvent::MouseButton(button, Action::Press, modifiers) => {
-                    self.game.click_down(button, modifiers);
-                },
-                WindowEvent::MouseButton(button, Action::Release, modifiers) => {
-                    self.game.click_up(button, modifiers);
-                },
-
-                _ => {}
-            }
-        }
-    }
-
     pub fn draw(&self){
     
     }
 }
+
 
 pub fn start<F>(config: Config, game: &mut F) where
     F: GameCore {
 
     // GLFW setup (Window/Context) 
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
+
+    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 6));
     glfw.window_hint(glfw::WindowHint::Resizable(false));
+    
     let (mut window, events) = glfw.create_window(config.dimensions.0,
                                                   config.dimensions.1, 
                                                   &config.title, 
                                                   glfw::WindowMode::Windowed).unwrap();
     
+    // Build an engine struct
     let mut engine = Engine { 
         glfw:   &mut glfw, 
         window: &mut window, 
         events, 
-        game};
-
+        game
+    };
+    
+    // Enable window events and make it the current context
     engine.window.set_all_polling(true);
     engine.window.make_current();
     
@@ -96,6 +84,12 @@ pub fn start<F>(config: Config, game: &mut F) where
         gl::Viewport(0, 0,  config.dimensions.0 as i32, config.dimensions.1 as i32);
     }
     
+    // Compile shader program from sources
+    let program = shader::program_from_sources(
+            include_str!("../../assets/shaders/vert.glsl").into(),
+            include_str!("../../assets/shaders/frag.glsl").into(),
+            None).unwrap();
+
 
     // Main Loop
     while !engine.window.should_close() {
