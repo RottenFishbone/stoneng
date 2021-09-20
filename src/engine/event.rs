@@ -17,10 +17,10 @@ impl<'a> Engine<'a> {
                     self.game.key_up(key, modifiers);
                 },
                 WindowEvent::MouseButton(button, Action::Press, modifiers) => {
-                    self.game.click_down(button, modifiers);
+                    self.game.mouse_btn_down(button, modifiers);
                 },
                 WindowEvent::MouseButton(button, Action::Release, modifiers) => {
-                    self.game.click_up(button, modifiers);
+                    self.game.mouse_btn_up(button, modifiers);
                 },
 
                 // Default

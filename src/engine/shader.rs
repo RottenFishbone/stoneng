@@ -3,10 +3,22 @@ use crate::engine::EngineError;
 use gl::types::*;
 use std::{ fs, ffi::{CString, CStr} };
 
+#[derive(Debug, Clone)]
 pub enum ShaderType {
     VertexShader = gl::VERTEX_SHADER as isize,
-    GeometryShader = gl::GEOMETRY_SHADER as isize,
     FragmentShader = gl::FRAGMENT_SHADER as isize,
+    GeometryShader = gl::GEOMETRY_SHADER as isize,
+}
+
+/// Returns the position of a shader program's uniform.
+///
+/// The name must contain no null bytes or will result in an error
+/// on conversion to CString.
+pub fn get_uniform_location(program: GLuint, name: &str) -> GLint {
+    unsafe {
+        let cname = CString::new(name).expect("Null byte contained within uniform name.");
+        gl::GetUniformLocation(program, cname.as_ptr() as *const GLchar)
+    }
 }
 
 /// Builds an OpenGL shader program using GLSL sources.
@@ -94,6 +106,7 @@ fn link_program(vert_shader: GLuint,
             // Convert CString to String
             let error = error_log.to_string_lossy().into_owned();
             // Return as linking error
+            println!("=====Linking=====\n{}", error);
             return Err(EngineError::ShaderLink(error));
         }
         
@@ -104,7 +117,6 @@ fn link_program(vert_shader: GLuint,
             gl::DetachShader(program, shader);
         }
     }
-    
     Ok(program)
 }
 
@@ -118,6 +130,8 @@ fn link_program(vert_shader: GLuint,
 pub fn compile_source(source: String, shader_type: ShaderType)
         -> Result<GLuint, EngineError> {
     
+    //println!("================={:?}================\n{}", shader_type, source);
+    
     // Virtually all this code is unsafe as it deals with CStrings and
     // OpenGL calls
     let shader: GLuint;
@@ -130,7 +144,7 @@ pub fn compile_source(source: String, shader_type: ShaderType)
             }
         };
 
-        shader = gl::CreateShader(shader_type as u32);
+        shader = gl::CreateShader(shader_type.clone() as u32);
         gl::ShaderSource(shader, 1, &csource.as_ptr(), std::ptr::null());
         gl::CompileShader(shader);
         
@@ -156,6 +170,8 @@ pub fn compile_source(source: String, shader_type: ShaderType)
             // Convert CString to String
             let error = error_log.to_string_lossy().into_owned();
             // Return as compile error
+            println!("========= {:?} Compile Error =========\n{}\n==========================", 
+                     &shader_type, error);
             return Err(EngineError::ShaderCompile(error));
         }
     }

@@ -7,7 +7,7 @@ edition = "2018"
 
 [dependencies]
 gl = "0.14"
+glfw = { version="*", features = ["default"] }
+nalgebra-glm = "0"
+stb_image = "0.2.3"
 
-[dependencies.glfw]
-git = "https://github.com/bjz/glfw-rs.git"
-default-features = false
