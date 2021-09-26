@@ -1,10 +1,7 @@
 #![allow(dead_code)]
-
-pub mod sprite;
-use sprite::Sprite;
-
-use crate::engine::EngineError;
-use crate::engine::shader;
+use crate::sprite::{self, Sprite};
+use crate::EngineError;
+use crate::shader;
 
 use std::{
     path::Path,
@@ -24,6 +21,8 @@ pub struct Renderer {
     array_buf:  GLuint,
     texture:    GLuint,
     uniform_locs: [GLint; 3], 
+
+    frame_count: usize,
 }
 
 impl Renderer {
@@ -37,6 +36,8 @@ impl Renderer {
             array_buf:  0,
             texture:    0,
             uniform_locs: [0, 0, 0], 
+
+            frame_count: 0, 
         }
     }
     
@@ -46,7 +47,6 @@ impl Renderer {
     /// Do not call this function before the engine is initialized or the gl
     /// bindings will not yet be loaded.
     pub fn init(&mut self) -> Result<(), EngineError>{
-        use crate::engine::shader::program_from_sources;
         use stb::image::LoadResult;
         
         // Just no op on a second call.
@@ -62,7 +62,7 @@ impl Renderer {
         }
 
         // Build shader program
-        self.program = program_from_sources(
+        self.program = shader::program_from_sources(
             include_str!("../../../assets/shaders/sprite_vert.glsl").into(),
             include_str!("../../../assets/shaders/sprite_frag.glsl").into(),
             //None,
@@ -138,13 +138,6 @@ impl Renderer {
             gl::VertexAttribIPointer(4, 1, gl::UNSIGNED_INT, stride, 
                                     sdata_offset as *const GLvoid); 
 
-                // Animation Data
-            let adata_offset = sdata_offset + (size_of::<u32>() as i32);
-            gl::EnableVertexAttribArray(5);
-            gl::VertexAttribIPointer(5, 1, gl::UNSIGNED_INT, stride, 
-                                    adata_offset as *const GLvoid); 
-
-            
             // Find and store the uniform locations
             self.uniform_locs[0] = shader::get_uniform_location(
                 self.program, "view_projection"); 
@@ -167,6 +160,7 @@ impl Renderer {
 
     pub fn render(&mut self) {
         if !self.initialized { return; }
+
         unsafe {
             // Bind
             gl::UseProgram(self.program);
@@ -189,12 +183,18 @@ impl Renderer {
             );
 
             gl::DrawArrays(gl::POINTS, 0, self.sprites.len() as i32);
-
+            
             // Unbind
             gl::BindTexture(gl::TEXTURE_2D, 0);
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
             gl::UseProgram(0);
         }
+        // Order sprites so that they are sent front to back
+        //self.sprites.sort_by(|a,b|  b.partial_cmp(a).unwrap() );
+    
+        // Advance the frame_count
+        if self.frame_count < usize::MAX { self.frame_count += 1; }
+        else { self.frame_count = 0; }
     }
 }

@@ -1,5 +1,5 @@
 #![allow(unused_variables, dead_code, unused_imports)]
-use crate::engine::EngineError;
+use crate::error::EngineError;
 use gl::types::*;
 use std::{ fs, ffi::{CString, CStr} };
 

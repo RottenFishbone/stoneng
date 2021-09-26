@@ -12,8 +12,6 @@ in VS_OUT {
     vec2 scale;
     uint id;
     vec2 dims;
-    uint anim_id;
-    uint anim_frame;
 } vs_out[];
 
 /// Fragment data to output
@@ -91,7 +89,6 @@ void main() {
         gl_Position = view_projection * (point_origin + point_offset * quad_scale + quad_transl);
         
         // ====== UV calculations ======
-        // TODO Animation
         // =============================
         // Calculate the 2d position of the sprite_id 
         uint spr_in_row = sheet_width / sheet_tile_w;
@@ -101,9 +98,9 @@ void main() {
         vec2 uv_offset = uv_id * sheet_ratio;
         // Flip the uv unit square vertically (to flip the texture)
         vec2 flipped_uv = vec2(unit_uv_verts[i].x, 1.0 - unit_uv_verts[i].y);
-        // Scale the base rect by the dimensions, translate to the id's position
-        // Translate the base rect down offset the scaling
-        gs_out.tex_coord = flipped_uv * dims + uv_offset - uv_offset*(dims - vec2(1.0, 1.0));
+        gs_out.tex_coord = flipped_uv * dims 
+                            + uv_offset        
+                            - uv_offset*(dims - vec2(1.0, 1.0));
         gs_out.color_adj = vs_out[0].color;
         
         // Save the vertex

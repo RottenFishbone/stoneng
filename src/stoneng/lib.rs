@@ -1,21 +1,22 @@
 #![allow(unused_imports, unused_variables)]
 
-mod event;
+extern crate nalgebra_glm as glm;
+extern crate stb_image as stb;
+
+pub mod sprite;
+pub mod event;
 mod shader;
 mod error;
 mod renderer;
 
+use event::*;
 use gl::types::*;
 use glfw::{Glfw, Window, Context, WindowEvent};
 use std::sync::mpsc::Receiver;
 
 // Aliases
 pub type EngineError = error::EngineError;
-pub type Key = glfw::Key;
-pub type MouseButton = glfw::MouseButton;
-pub type Modifiers = glfw::Modifiers;
 pub type Renderer = renderer::Renderer;
-pub type Sprite = renderer::sprite::Sprite;
 
 /// Provides interfacing functions for the engine.
 ///
@@ -26,7 +27,7 @@ pub trait EngineCore {
     /// Called once, after context creation, before initial draw. 
     fn init(&mut self){}
     /// Called once per engine update.
-    fn tick(&mut self){}
+    fn tick(&mut self, dt: f64){}
     /// Called just before the renderer draws
     fn pre_render(&mut self) {}
     /// Called right after the renderer draws
@@ -130,9 +131,9 @@ pub fn start<F>(config: Config, game: &mut F) where
     
     // OpenGL Version 4.6
     glfw.window_hint(glfw::WindowHint::ContextVersion(4, 6));
+    glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
     glfw.window_hint(glfw::WindowHint::Resizable(false));
-    
     // Build the glfw window
     let (mut window, events) = 
         glfw.create_window(
@@ -152,13 +153,20 @@ pub fn start<F>(config: Config, game: &mut F) where
    
     engine.init();
 
+
     // Main Loop
+    let mut last_tick = engine.glfw.get_time();
     while !engine.window.should_close() {
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
         // Handle window events
         engine.handle_events();
+
+        // Just tick every frame for now
+        let now = engine.glfw.get_time();
+        engine.game.tick(now-last_tick);
+        last_tick = now;
         
         engine.game.pre_render();
         engine.game.get_renderer().render();

@@ -1,6 +1,11 @@
 use super::Engine;
 use glfw::{WindowEvent, Action};
 
+// Aliases
+pub type Key = glfw::Key;
+pub type MouseButton = glfw::MouseButton;
+pub type Modifiers = glfw::Modifiers;
+
 impl<'a> Engine<'a> {
     pub fn handle_events(&mut self){
         self.glfw.poll_events();
@@ -23,7 +28,7 @@ impl<'a> Engine<'a> {
                     self.game.mouse_btn_up(button, modifiers);
                 },
 
-                // Default
+                // Default no op
                 _ => {}
             }
         }

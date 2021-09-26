@@ -3,11 +3,22 @@ name = "rustylantern"
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "stoneng"
+path = "src/stoneng/lib.rs"
+
+[[bin]]
+name = "rustylantern"
+path = "src/main.rs"
 
 [dependencies]
 gl = "0.14"
 glfw = { version="*", features = ["default"] }
 nalgebra-glm = "0"
 stb_image = "0.2.3"
+
+# (de)serializing
+serde = { version = "1.0", features = ["derive", "rc"] }
+ron = "0.6.5"
+
 
