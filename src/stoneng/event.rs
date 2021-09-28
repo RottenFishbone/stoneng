@@ -27,6 +27,9 @@ impl<'a> Engine<'a> {
                 WindowEvent::MouseButton(button, Action::Release, modifiers) => {
                     self.game.mouse_btn_up(button, modifiers);
                 },
+                WindowEvent::CursorPos(x, y) => {
+                    self.game.cursor_pos(x, y);
+                }
 
                 // Default no op
                 _ => {}

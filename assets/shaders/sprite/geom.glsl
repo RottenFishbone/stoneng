@@ -20,8 +20,6 @@ out GS_OUT {
     vec4 color_adj;
 } gs_out;
 
-
-// 
 void main() {
     // Aliases
     uint sprite_id = vs_out[0].id;

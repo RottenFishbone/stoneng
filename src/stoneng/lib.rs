@@ -48,6 +48,8 @@ pub trait EngineCore {
     fn mouse_btn_up(&mut self, button: MouseButton, modifiers: Modifiers){}
     /// Called on a mouse button being pressed.
     fn mouse_btn_down(&mut self, button: MouseButton, modifiers: Modifiers){}
+
+    fn cursor_pos(&mut self, x: f64, y: f64) {}
 }
 
 
@@ -102,7 +104,8 @@ impl<'a> Engine<'a> {
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA); 
             
             // Set clear color
-            gl::ClearColor(0.4, 0.35, 0.35, 1.0);
+            //gl::ClearColor(0.4, 0.35, 0.45, 1.0);
+            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
 
             // Enable depth testing during render
             gl::Enable(gl::DEPTH_TEST);
@@ -157,9 +160,6 @@ pub fn start<F>(config: Config, game: &mut F) where
     // Main Loop
     let mut last_tick = engine.glfw.get_time();
     while !engine.window.should_close() {
-        unsafe {
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
         // Handle window events
         engine.handle_events();
 

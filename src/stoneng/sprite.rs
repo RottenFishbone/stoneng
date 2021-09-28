@@ -179,6 +179,7 @@ pub struct SpriteSchema {
 ///
 /// Note, the anim_state and schema are boxed to allow for faster traversal over
 /// the sprite_data when sending to the GPU.
+#[derive(Clone)]
 #[repr(C)]
 pub struct Sprite {
     // ======== Render Data =========
@@ -354,6 +355,7 @@ impl Sprite {
     }
 }
 
+#[derive(Clone)]
 pub struct AnimState {
     pub schema:             Rc<AnimationSchema>,
     pub frame_progress:     f64,

@@ -20,7 +20,7 @@ SpriteSheet(
         ),
         
         // Testing variants
-        "var-brick": (
+        "brick": (
             root: 8,
             variants: 3,
         ),
