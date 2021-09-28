@@ -16,17 +16,10 @@ void main() {
     float dist_sq = dot(delta_pos, delta_pos);
     // Round the corners from the quad
     if (dist_sq >= gs_out.intensity_sq)
-        discard;
+        discard; 
 
-    float lum = 0.0;
-    float dist_ratio = dist_sq / gs_out.intensity_sq * 1.45;
-    // Distance from inner glow
-    if (dist_ratio < 0.1) {
-        lum = 1.0 - dist_ratio/3.0;
-    }
-    else{
-        lum = 1.0-(dist_ratio);
-    }
+    float lum = max(0.0, 1.0-(dist_sq/gs_out.intensity_sq));
+    lum *= lum;
 
-    fragColor = vec4(lum, 0.0, 0.0, 0.0);
+    fragColor = vec4(lum * 1.1, 0.0, 0.0, 0.0);
 }

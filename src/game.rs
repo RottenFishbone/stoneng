@@ -73,7 +73,9 @@ impl stoneng::EngineCore for RustyLantern {
         }
 
         for light in self.renderer.lights.iter_mut() {
-            light.z = 150.0 + (self.time.sin() as f32) * 10.0;
+            let flicker = ((self.time-dt).sin() * 10.0) as f32;
+            let base = light.z - flicker;
+            light.z =  base + (self.time.sin() as f32) * 10.0;
         }
 
         if *self.held.get(&'A').unwrap() {
@@ -114,12 +116,19 @@ impl stoneng::EngineCore for RustyLantern {
     fn key_down(&mut self, key: event::Key, modifiers: event::Modifiers){
         match key {
             event::Key::A => {
-
                 self.held.insert('A', true);
             },
             event::Key::D => {
                 self.held.insert('D', true);
             },
+            event::Key::W => {
+                let l = self.renderer.lights.get_mut(0).unwrap();
+                l.z *= 1.25;
+            },
+            event::Key::S => {
+                let l = self.renderer.lights.get_mut(0).unwrap();
+                l.z /= 1.25;
+            }
             _ => {}
         }
     }
@@ -128,6 +137,11 @@ impl stoneng::EngineCore for RustyLantern {
 
     fn mouse_btn_down(&mut self, button: event::MouseButton, modifiers: event::Modifiers){
         let l = self.renderer.lights.get(0).unwrap().clone();
+        
+        if button == event::MouseButton::Button2 {
+            self.renderer.lights.clear();
+        }
+
         self.renderer.lights.push(l);
 
     }
