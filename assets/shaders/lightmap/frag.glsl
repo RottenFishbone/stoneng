@@ -19,14 +19,14 @@ void main() {
         discard;
 
     float lum = 0.0;
-    float dist_ratio = dist_sq / gs_out.intensity_sq;
+    float dist_ratio = dist_sq / gs_out.intensity_sq * 1.45;
     // Distance from inner glow
     if (dist_ratio < 0.1) {
-        lum = 1.0;
+        lum = 1.0 - dist_ratio/3.0;
     }
     else{
         lum = 1.0-(dist_ratio);
     }
 
-    fragColor = vec4(floor(lum*15.0)/15.0, 0.0, 0.0, 0.0);
+    fragColor = vec4(lum, 0.0, 0.0, 0.0);
 }

@@ -18,17 +18,19 @@ void main() {
         {15, 47,  7, 39, 13, 45,  5, 37},
         {63, 31, 55, 23, 61, 29, 53, 21} 
     };
-
-    vec2 xy = gl_FragCoord.xy;
-    int x = int(mod(xy.x, 8.0)); 
-    int y = int(mod(xy.y, 8.0)); 
-
+    float scale = 2.0;
+    vec2 xy = gl_FragCoord.xy / scale;
+    vec2 xy_adj = mod(gl_FragCoord.xy, scale);
+    int x = int(mod(xy.x, 4.0)); 
+    int y = int(mod(xy.y, 4.0)); 
     // Grab the R channel from the lightmap
-    ivec2 offs = ivec2(int(xy.x), int(xy.y));
     float light = texture(lightmap, uv_pos).r;
+    ivec2 offs = ivec2(-int(xy_adj.x), -int(xy_adj.y));
+    light = textureOffset(lightmap, uv_pos, offs).r;
+    
     float limit = float(dither[x][y]+1) / 64.0;
     if (light > limit)
         discard;
 
-    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    fragColor = vec4(0.1, 0.1, 0.15, 0.975);
 }
