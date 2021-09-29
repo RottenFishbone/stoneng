@@ -15,7 +15,7 @@ pub struct Renderer {
 
     pub sprites:    Vec<Sprite>,
     pub lights:     Vec<Vec3>,
-
+    pub dither_scale:  f32,
     // OpenGL members
     programs:       [GLuint; 3],
     vaos:           [GLuint; 3],
@@ -32,6 +32,7 @@ impl Renderer {
             initialized:    false,
             sprites:        Vec::with_capacity(1024),
             lights:         Vec::<Vec3>::with_capacity(1024),
+            dither_scale:   1.0,
             programs:       [0, 0, 0],
             vaos:           [0, 0, 0],
             abos:           [0, 0, 0],
@@ -254,6 +255,8 @@ impl Renderer {
 
     pub fn render(&mut self) {
         if !self.initialized { return; }
+        let res = Vec2::from([800.0, 600.0]);
+        let dither_scale: f32 = self.dither_scale;
 
         unsafe {
             // ===== Render Sprites ======
@@ -304,14 +307,21 @@ impl Renderer {
             gl::BindTexture(gl::TEXTURE_2D, self.textures[1]);
             gl::BindVertexArray(self.vaos[1]);
             gl::BindBuffer(gl::ARRAY_BUFFER, self.abos[1]);
-            
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::BlendFunc(gl::ONE, gl::ONE);
             //gl::BlendEquation(gl::MAX); 
             
+            let down_res = res / dither_scale;
+            let scaled_vp = glm::ortho(0.0, down_res.x, 0.0, down_res.y, -1.0, 1.0); 
+            gl::Viewport(0, 0, down_res.x as i32, down_res.y as i32); 
+            
             gl::UniformMatrix4fv(
                 shader::get_uniform_location(self.programs[1], "view_projection"),
-                1, gl::FALSE, view_projection.as_ptr()
+                1, gl::FALSE, scaled_vp.as_ptr()
+            );
+            gl::Uniform1f(
+                shader::get_uniform_location(self.programs[1], "px_scale"),
+                dither_scale,
             );
 
             // Load point light data
@@ -332,6 +342,7 @@ impl Renderer {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
+            gl::Viewport(0, 0, 800, 600); 
             // ===============================
             
 
@@ -348,6 +359,11 @@ impl Renderer {
             
             gl::BindTexture(gl::TEXTURE_2D, self.textures[1]);
            
+            gl::Uniform1f(
+                shader::get_uniform_location(self.programs[2], "lightmap_scale"),
+                dither_scale,
+            );
+
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);
             // ===============================
             

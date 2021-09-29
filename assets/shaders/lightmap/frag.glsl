@@ -1,4 +1,4 @@
-#version 460 core
+#version 430 core
 
 out vec4 fragColor;
 
@@ -8,12 +8,12 @@ in GS_OUT {
 } gs_out;
 
 
-
 void main() {
     vec2 xy = gl_FragCoord.xy; 
 
     vec2 delta_pos = xy-gs_out.center;
     float dist_sq = dot(delta_pos, delta_pos);
+
     // Round the corners from the quad
     if (dist_sq >= gs_out.intensity_sq)
         discard; 

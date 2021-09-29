@@ -1,10 +1,11 @@
-#version 460 core
+#version 430 core
 
 out vec4 fragColor;
 
 in vec2 uv_pos;
 
 uniform sampler2D lightmap;
+uniform float lightmap_scale; 
 
 void main() {
     int dither[8][8] = {
@@ -17,18 +18,17 @@ void main() {
         {15, 47,  7, 39, 13, 45,  5, 37},
         {63, 31, 55, 23, 61, 29, 53, 21} 
     };
-    float scale = 2.0;
-    vec2 xy = floor(gl_FragCoord.xy) / scale;
-    vec2 xy_bias = mod(gl_FragCoord.xy, scale);
+
+    vec2 xy = floor(gl_FragCoord.xy) / lightmap_scale;
 
     int x = int(mod(xy.x, 8.0)); 
     int y = int(mod(xy.y, 8.0)); 
     // Grab the R channel from the lightmap
-    ivec2 offs = ivec2(-int(xy_bias.x), -int(xy_bias.y));
-    float light = textureOffset(lightmap, uv_pos, offs).r;
+    float light = texture(lightmap, uv_pos).r;
     
     float limit = float(dither[x][y]) / 64.0;
-    if (light > limit)
+    if (light > limit){
         discard;
+    }
     fragColor = vec4(0.1, 0.1, 0.15, 0.975);
 }

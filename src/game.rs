@@ -129,6 +129,16 @@ impl stoneng::EngineCore for RustyLantern {
                 let l = self.renderer.lights.get_mut(0).unwrap();
                 l.z /= 1.25;
             }
+            
+            event::Key::I => {
+                self.renderer.dither_scale *= 2.0;
+            }
+
+            event::Key::K => {
+                self.renderer.dither_scale /= 2.0;
+            }
+
+
             _ => {}
         }
     }
