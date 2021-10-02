@@ -1,13 +1,16 @@
 use super::Engine;
-use glfw::{WindowEvent, Action};
+//use glfw::{WindowEvent, Action};
 
 // Aliases
-pub type Key = glfw::Key;
-pub type MouseButton = glfw::MouseButton;
-pub type Modifiers = glfw::Modifiers;
+//pub type Key = glfw::Key;
+//pub type MouseButton = glfw::MouseButton;
+//pub type Modifiers = glfw::Modifiers;
 
 impl<'a> Engine<'a> {
-    pub fn handle_events(&mut self){
+    pub fn handle_window_event(&mut self, event: glutin::event::WindowEvent) {
+
+    }
+/*    pub fn handle_events(&mut self){
         self.glfw.poll_events();
         for (_, event) in glfw::flush_messages(&self.events){
             match event {
@@ -36,4 +39,5 @@ impl<'a> Engine<'a> {
             }
         }
     }    
+*/
 }

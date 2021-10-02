@@ -99,63 +99,6 @@ impl stoneng::EngineCore for RustyLantern {
         &mut self.renderer
     }
 
-    fn key_up(&mut self, key: event::Key, modifiers: event::Modifiers){
-        match key {
-            event::Key::A => {
-                self.held.insert('A', false);
-            },
-            event::Key::D => {
-                self.held.insert('D', false);
-            },
-            _ => {}
-        }
-    
-
-    }
-
-    fn key_down(&mut self, key: event::Key, modifiers: event::Modifiers){
-        match key {
-            event::Key::A => {
-                self.held.insert('A', true);
-            },
-            event::Key::D => {
-                self.held.insert('D', true);
-            },
-            event::Key::W => {
-                let l = self.renderer.lights.get_mut(0).unwrap();
-                l.z *= 1.25;
-            },
-            event::Key::S => {
-                let l = self.renderer.lights.get_mut(0).unwrap();
-                l.z /= 1.25;
-            }
-            
-            event::Key::I => {
-                self.renderer.dither_scale *= 2.0;
-            }
-
-            event::Key::K => {
-                self.renderer.dither_scale /= 2.0;
-            }
-
-
-            _ => {}
-        }
-    }
-
-    fn mouse_btn_up(&mut self, button: event::MouseButton, modifiers: event::Modifiers){}
-
-    fn mouse_btn_down(&mut self, button: event::MouseButton, modifiers: event::Modifiers){
-        let l = self.renderer.lights.get(0).unwrap().clone();
-        
-        if button == event::MouseButton::Button2 {
-            self.renderer.lights.clear();
-        }
-
-        self.renderer.lights.push(l);
-
-    }
-
     fn cursor_pos(&mut self, x: f64, y: f64) {
         let l = self.renderer.lights.get_mut(0).unwrap();
         let x = x as f32; let y = y as f32;

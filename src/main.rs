@@ -1,9 +1,11 @@
 mod game;
 
 use stoneng::Config;
+use game::RustyLantern;
 
 fn main() {
     let config = Config::default(); 
-    let mut game = game::RustyLantern::new();
-    stoneng::start(config, &mut game);
+    stoneng::start(config, move || {
+        RustyLantern::new()
+    });
 }
