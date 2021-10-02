@@ -7,7 +7,7 @@ pub mod sprite;
 pub mod event;
 mod shader;
 mod error;
-mod renderer;
+pub mod renderer;
 
 use event::*;
 use std::time::Instant;
@@ -22,7 +22,6 @@ use glutin::{
 
 // Aliases
 pub type EngineError = error::EngineError;
-pub type Renderer = renderer::Renderer;
 
 /// Provides interfacing functions for the engine.
 ///
@@ -34,23 +33,19 @@ pub trait EngineCore {
     fn init(&mut self){}
     /// Called once per engine update with the number of seconds since the last draw.
     fn tick(&mut self, dt: f64){}
-    /// Called just before the renderer draws
-    fn pre_render(&mut self) {}
-    /// Called right after the renderer draws
-    fn post_render(&mut self) {}
 
     // Rendering
-    /// Called by the engine when the renderer is required.
-    /// 
-    /// This should simply return a stored renderer used to draw.
-    fn get_renderer(&mut self) -> &mut Renderer;
+    /// Called when the context is ready for drawing
+    fn render(&mut self) {}
+    /// Called after the context has been drawn to and displayed
+    fn post_render(&mut self) {}
 
     // Input
     /// Called on a keyboard input state being changed.
     fn key_input(&mut self, event: KeyEvent){} 
-
+    /// Called when a mouse button has changed state.
     fn mouse_btn(&mut self, event: MouseBtnEvent){}
-
+    /// Called when the cursor moves within the window
     fn cursor_moved(&mut self, x: f64, y: f64) {}
 }
 
@@ -98,7 +93,8 @@ pub fn start<F, G>(config: Config, game: F) where
     
     init_gl();
     game.init();
-    game.get_renderer().init().unwrap();
+    //game.get_renderer().init().unwrap();
+   
 
     let mut last_frame = Instant::now();
     let modifiers = 0;
@@ -130,9 +126,9 @@ pub fn start<F, G>(config: Config, game: F) where
                 game.tick(dt / 1_000_000.0);
                 last_frame = Instant::now();
                 
-                game.pre_render();
+                game.render();
 
-                game.get_renderer().render();
+                // Call renderers here
                 ctx.swap_buffers().unwrap();
                 
                 game.post_render();

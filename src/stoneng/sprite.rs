@@ -163,7 +163,7 @@ pub struct SpriteSchema {
     /// How many tiles in each direction the sprite uses. The origin is the
     /// bottom left tile.
     #[serde(default)]
-    pub dimensions:       (u32, u32),
+    pub dimensions:       (u8, u8),
     
     /// A map of animation schema that the sprite can use.
     #[serde(default)]
@@ -174,6 +174,48 @@ pub struct SpriteSchema {
 
 
 // ========================== Sprite ==========================================
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct RenderSprite {
+    pub pos:        glm::Vec3,
+    pub color:      glm::Vec4,
+    pub scale:      glm::Vec2,
+    pub rotation:   f32,
+   
+    sprite_id:      u16,
+    sprite_dims:    u8,
+    sprite_flags:   u8,
+}
+impl From<Sprite> for RenderSprite {
+    fn from(s: Sprite) -> Self {
+        Self {
+            pos: s.pos.clone(),
+            color: s.color.clone(),
+            scale: s.scale.clone(),
+            rotation: s.rotation.clone(),
+            sprite_id: s.sprite_id.clone(),
+            sprite_dims: s.sprite_dims.clone(),
+            sprite_flags: s.sprite_flags.clone(),
+        }
+    }
+}
+
+impl RenderSprite {
+    pub fn apply_schema(&mut self, schema: &SpriteSchema) -> &mut Self {
+        self.sprite_id = schema.root;
+        self.sprite_dims = schema.dimensions.0 | (schema.dimensions.1 << 4);
+
+        self
+    }
+
+    pub fn apply_animation(&mut self, anim: &AnimState) -> &mut Self {
+        let schema = &anim.schema;
+        self.sprite_id = schema.root + anim.frame as u16;
+
+        self
+    }
+}
+
 /// Contains all the data needed to render a sprite. Note, that if the schema
 /// does not exist the sprite will render as the first sprite in the spritesheet.
 ///
@@ -204,11 +246,6 @@ pub struct Sprite {
 
 impl Sprite {
     /// Builds a sprite using provided attributes and specific sprite schema.
-    ///
-    /// # Example
-    /// ```
-    /// 
-    /// ```
     pub fn new(pos: Vec3, color: Vec4, scale: Vec2, 
                rotation: f32, schema: Rc<SpriteSchema>) -> Self {
          
