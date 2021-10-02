@@ -14,7 +14,7 @@ use std::time::Instant;
 use gl::types::*;
 use std::sync::mpsc::{self, Sender, Receiver};
 use glutin::{
-    event::{Event, WindowEvent},
+    event::{Event, WindowEvent, VirtualKeyCode},
     event_loop::{self, ControlFlow, EventLoop},
     window::{self, Window, WindowBuilder},
     dpi::PhysicalSize,
@@ -32,7 +32,7 @@ pub trait EngineCore {
     // Engine Cycle
     /// Called once, after context creation, before initial draw. 
     fn init(&mut self){}
-    /// Called once per engine update.
+    /// Called once per engine update with the number of seconds since the last draw.
     fn tick(&mut self, dt: f64){}
     /// Called just before the renderer draws
     fn pre_render(&mut self) {}
@@ -46,16 +46,12 @@ pub trait EngineCore {
     fn get_renderer(&mut self) -> &mut Renderer;
 
     // Input
-    /// Called on a key being released.
-    //fn key_up(&mut self, key: Key, modifiers: Modifiers){} 
-    /// Called on a key being pressed.
-    //fn key_down(&mut self, key: Key, modifiers: Modifiers){}
-    /// Called on a mouse button being released.
-    //fn mouse_btn_up(&mut self, button: MouseButton, modifiers: Modifiers){}
-    /// Called on a mouse button being pressed.
-    //fn mouse_btn_down(&mut self, button: MouseButton, modifiers: Modifiers){}
+    /// Called on a keyboard input state being changed.
+    fn key_input(&mut self, event: KeyEvent){} 
 
-    fn cursor_pos(&mut self, x: f64, y: f64) {}
+    fn mouse_btn(&mut self, event: MouseBtnEvent){}
+
+    fn cursor_moved(&mut self, x: f64, y: f64) {}
 }
 
 
@@ -83,12 +79,12 @@ pub fn start<F, G>(config: Config, game: F) where
     F: 'static + FnOnce() -> G {
     
     let mut game = game();
-
+    let mut window_size = PhysicalSize::new(config.dimensions.0, config.dimensions.1);
     // Spawn the event loop thread and build the context
     let el = EventLoop::new();
     let wb = WindowBuilder::new()
         .with_title("rustylantern")
-        .with_inner_size(PhysicalSize::new(800, 600))
+        .with_inner_size(window_size)
         .with_resizable(false);
     let ctx = glutin::ContextBuilder::new()
         .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 1)))
@@ -103,18 +99,43 @@ pub fn start<F, G>(config: Config, game: F) where
     init_gl();
     game.init();
     game.get_renderer().init().unwrap();
+
+    let mut last_frame = Instant::now();
+    let modifiers = 0;
     el.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::LoopDestroyed => return,
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => { *control_flow = ControlFlow::Exit; },
+                WindowEvent::KeyboardInput { input, .. } => {
+                    if let Some(key) = input.virtual_keycode {
+                        if key == VirtualKeyCode::Escape {
+                            *control_flow = ControlFlow::Exit;
+                        }
+                    }
+
+                    game.key_input(input.into());
+                },
+                WindowEvent::MouseInput {state, button, ..} => {
+                    game.mouse_btn(MouseBtnEvent { state, button });
+                },
+                WindowEvent::CursorMoved { position, .. } => {
+                    game.cursor_moved(position.x, position.y);
+                },
                 _ => {}
             },
             Event::MainEventsCleared => { 
-                game.get_renderer().render();
+                let dt = last_frame.elapsed().as_micros() as f64;
+                game.tick(dt / 1_000_000.0);
+                last_frame = Instant::now();
+                
+                game.pre_render();
 
+                game.get_renderer().render();
                 ctx.swap_buffers().unwrap();
+                
+                game.post_render();
             }
 
             _ => {},
@@ -123,7 +144,6 @@ pub fn start<F, G>(config: Config, game: F) where
 
 
 }
-
 
 fn init_gl(){
     unsafe {

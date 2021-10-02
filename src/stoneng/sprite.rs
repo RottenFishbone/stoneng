@@ -293,10 +293,15 @@ impl Sprite {
 
         let mut adv_frames = frames_to_adv as u8; 
         while adv_frames > 0 {
+            let overflow_check = (adv_frames as u32 + anim_state.frame as u32) > 255;
+            if overflow_check {
+                self.to_idle_animation();
+                break;
+            }
             // Try to play forwards
             if !anim_state.is_reversing {
                 // Advance all frames, if possible
-                if anim_state.frame + adv_frames < anim_schema.frames {
+                if (anim_state.frame as u32 + adv_frames as u32) < anim_schema.frames as u32 {
                     anim_state.frame += adv_frames;
                     self.sprite_id += adv_frames as u16;
                     break;

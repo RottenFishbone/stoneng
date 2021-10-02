@@ -1,4 +1,4 @@
-#version 430 core
+#version 410 core
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
@@ -30,12 +30,12 @@ void main() {
 
     // Calculate vertex offsets of a square to be drawn with triangle strip.
     // Note this goes from corner to corner, so the origin is centered.
-    vec4 unit_quad_verts[4] = {
+    vec4 unit_quad_verts[4] =  vec4[4](
         vec4( -1.0, -1.0, 0.0, 0.0 ), // bottom-left
         vec4( -1.0,  1.0, 0.0, 0.0 ), // top-left
         vec4(  1.0, -1.0, 0.0, 0.0 ), // bottom-right
-        vec4(  1.0,  1.0, 0.0, 0.0 ), // top-right
-    };
+        vec4(  1.0,  1.0, 0.0, 0.0 )  // top-right
+    );
     
     // Calculate a unit uv square using (0, 1) as top left.
     //
@@ -50,12 +50,12 @@ void main() {
     // That is, The width of a sprite, sheet_tile_w, divided by the width of the sheet, sheet_width.
     // This 'sheet_ratio' is used to create a square from the top-left, sheet_ratio wide.
     float sheet_ratio = tile_width / sh_width;
-    vec2 unit_uv_verts[4] = {
+    vec2 unit_uv_verts[4] = vec2[4](
         vec2( 0.0,         1.0 - sheet_ratio ), // bottom-left
         vec2( 0.0,         1.0               ), // top-left
         vec2( sheet_ratio, 1.0 - sheet_ratio ), // bottom-right
-        vec2( sheet_ratio, 1.0               ), // top-right
-    };
+        vec2( sheet_ratio, 1.0               )  // top-right
+    );
    
     // Building the quad
     for (int i = 0; i < 4; ++i) {

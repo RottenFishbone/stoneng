@@ -91,18 +91,25 @@ impl stoneng::EngineCore for RustyLantern {
     }
 
     fn pre_render(&mut self) {}
-    
-
     fn post_render(&mut self) {}
 
     fn get_renderer(&mut self) -> &mut stoneng::Renderer {
         &mut self.renderer
     }
 
-    fn cursor_pos(&mut self, x: f64, y: f64) {
+    fn cursor_moved(&mut self, x: f64, y: f64) {
         let l = self.renderer.lights.get_mut(0).unwrap();
         let x = x as f32; let y = y as f32;
         *l = Vec3::from([x, 600.0-y, l.z]);
+    }
+
+    fn key_input(&mut self, event: event::KeyEvent){}
+
+    fn mouse_btn(&mut self, event: event::MouseBtnEvent){
+        if event.button == event::MouseButton::Left && 
+           event.state == event::ElementState::Pressed {
+            self.renderer.lights.push(self.renderer.lights.first().unwrap().clone())
+        }
     }
 }
 

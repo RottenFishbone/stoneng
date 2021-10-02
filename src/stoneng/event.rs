@@ -1,43 +1,30 @@
-use super::Engine;
-//use glfw::{WindowEvent, Action};
 
-// Aliases
-//pub type Key = glfw::Key;
-//pub type MouseButton = glfw::MouseButton;
-//pub type Modifiers = glfw::Modifiers;
+use glutin::event;
 
-impl<'a> Engine<'a> {
-    pub fn handle_window_event(&mut self, event: glutin::event::WindowEvent) {
+pub type KeyCode = event::VirtualKeyCode;
+pub type ElementState = event::ElementState;
+pub type MouseButton = event::MouseButton;
 
-    }
-/*    pub fn handle_events(&mut self){
-        self.glfw.poll_events();
-        for (_, event) in glfw::flush_messages(&self.events){
-            match event {
-                // Input events
-                WindowEvent::Key(glfw::Key::Escape, _, Action::Press, _) => { 
-                    self.window.set_should_close(true); 
-                },
-                WindowEvent::Key(key, _, Action::Press, modifiers) => {
-                    self.game.key_down(key, modifiers);
-                },
-                WindowEvent::Key(key, _, Action::Release, modifiers) => {
-                    self.game.key_up(key, modifiers);
-                },
-                WindowEvent::MouseButton(button, Action::Press, modifiers) => {
-                    self.game.mouse_btn_down(button, modifiers);
-                },
-                WindowEvent::MouseButton(button, Action::Release, modifiers) => {
-                    self.game.mouse_btn_up(button, modifiers);
-                },
-                WindowEvent::CursorPos(x, y) => {
-                    self.game.cursor_pos(x, y);
-                }
-
-                // Default no op
-                _ => {}
-            }
-        }
-    }    
-*/
+#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct KeyEvent {
+    pub key: Option<KeyCode>,
+    pub state: ElementState, 
 }
+
+#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct MouseBtnEvent {
+    pub button: MouseButton,
+    pub state: ElementState,
+}
+
+impl From<event::KeyboardInput> for KeyEvent {
+    fn from(e: event::KeyboardInput) -> Self {
+        KeyEvent { 
+            key: e.virtual_keycode,
+            state: e.state
+        }
+    }
+}
+

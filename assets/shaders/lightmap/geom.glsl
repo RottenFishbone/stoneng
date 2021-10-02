@@ -1,4 +1,4 @@
-#version 430 core
+#version 410 core
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
@@ -18,12 +18,12 @@ void main() {
     
     // Calculate vertex offsets of a square to be drawn with triangle strip.
     // Note this goes from corner to corner, so the origin is centered.
-    vec4 unit_quad_verts[4] = {
+    vec4 unit_quad_verts[4] = vec4[4](
         vec4( -1.0, -1.0, 0.0, 0.0 ), // bottom-left
         vec4( -1.0,  1.0, 0.0, 0.0 ), // top-left
         vec4(  1.0, -1.0, 0.0, 0.0 ), // bottom-right
-        vec4(  1.0,  1.0, 0.0, 0.0 ), // top-right
-    };
+        vec4(  1.0,  1.0, 0.0, 0.0 )  // top-right
+    );
 
     float int_sq = vs_out[0].intensity * vs_out[0].intensity;
     for (int i = 0; i < 4; ++i) {
