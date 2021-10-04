@@ -3,33 +3,101 @@ use std::rc::Rc;
 use std::collections::HashMap;
 use nalgebra_glm::{Vec2, Vec3, Vec4};
 
+use specs::{Builder, World, WorldExt, Entity, RunNow, DispatcherBuilder, Dispatcher};
+use stoneng::ecs::{
+    resource,
+    system,
+    component,
+};
+
 use stoneng::{
     self, 
-    sprite::{Sprite, SpriteSheet},
+    spritesheet::SpriteSheet,
     event,
 }; 
-pub struct RustyLantern {
-    spritesheet:    SpriteSheet,
+pub struct RustyLantern<'a> {
+    spritesheet:        SpriteSheet,
+    world:              Option<World>,
+    dispatcher:         Option<Dispatcher<'a, 'a>>,
 }
 
-impl RustyLantern {
+impl<'a> RustyLantern<'a> {
     pub fn new() -> Self {
         Self {
             spritesheet: SpriteSheet::from_layout("assets/textures/atlas.ron".into()).unwrap(),
+            world: None,
+            dispatcher: None,
         }
     }
 }
 
 
-impl stoneng::EngineCore for RustyLantern {
-    fn init(&mut self){}
+impl<'a> stoneng::EngineCore for RustyLantern<'a> {
+    fn init(&mut self){
+        // Setup ECS
+        let mut world = World::new();
+        world.insert(resource::DeltaTime(0.0));
 
-    fn tick(&mut self, dt: f64){}
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(system::StaticSpriteSys, "static_sprite", &[])
+            .with(system::AnimSpriteSys, "anim_sprite", &["static_sprite"])
+            .with_thread_local(system::SpriteRenderSys::default())
+            .build();
+ 
+        dispatcher.setup(&mut world);
+        
+        let tile = self.spritesheet.sprites.get("man").unwrap().clone();
+        let mut xform = component::Transform::default(); 
+        xform.translation.x = 32.0;
+        xform.translation.y = 32.0;
+        world.create_entity()
+            .with(xform.clone())
+            .with(component::Color::default())
+            .with(component::Sprite::from(tile.clone())) 
+            .build();
 
-    fn render(&mut self) {}
-    fn post_render(&mut self) {}
+        xform.translation.x = 100.0;
+        xform.translation.y = 100.0;
+        world.create_entity()
+            .with(xform)
+            .with(component::Color::default())
+            .with(component::Sprite::from(tile.clone()))
+            .with(component::Animation {
+                frame: 0,
+                frame_progress: 0.0,
+                is_reversing: false,
+                schema: Some(tile.animations.get("walk").unwrap().clone()),
+            })
+            .build();
+        world.maintain();
 
-    fn cursor_moved(&mut self, x: f64, y: f64) {}
+        self.world = Some(world);
+        self.dispatcher = Some(dispatcher);
+    }
+
+    fn tick(&mut self, dt: f64){
+        if let Some(world) = &mut self.world {
+            let mut dt_res = world.write_resource::<resource::DeltaTime>();
+            *dt_res = resource::DeltaTime(dt);
+        }
+    }
+
+    fn render(&mut self) {
+        if let Some(dispatcher) = &mut self.dispatcher {
+            if let Some(world) = &mut self.world {
+                dispatcher.dispatch(world);
+            }
+        }              
+    }
+    fn post_render(&mut self) {
+        if let Some(world) = &mut self.world {
+            world.maintain();
+        }
+    }
+
+    fn cursor_moved(&mut self, x: f64, y: f64) {
+
+    }
 
     fn key_input(&mut self, event: event::KeyEvent){}
 

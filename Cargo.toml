@@ -12,11 +12,14 @@ name = "rustylantern"
 path = "src/main.rs"
 
 [dependencies]
+# Window/Graphics
 gl = "0.14"
+glutin = "0.27.0"
 nalgebra-glm = "0"
 stb_image = "0.2.3"
 
-glutin = "0.27.0"
+# Data Structure
+specs = { version ="0.17", features = ["specs-derive", "shred-derive"] }
 
 # (de)serializing
 serde = { version = "1.0", features = ["derive", "rc"] }

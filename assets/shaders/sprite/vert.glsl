@@ -1,8 +1,8 @@
 #version 410 core
 layout (location = 0) in vec3 pos;
-layout (location = 1) in vec4 color;
-layout (location = 2) in vec2 scale;
-layout (location = 3) in float rotation;
+layout (location = 1) in vec2 scale;
+layout (location = 2) in float rotation;
+layout (location = 3) in vec4 color;
 layout (location = 4) in uint sprite_data;
 // Sprite data must be packed as:
 // [ 0x00 0x00 0x00 0x00 ]

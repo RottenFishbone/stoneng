@@ -41,8 +41,8 @@ SpriteSheet(
                 "grow": (
                     root:       8,
                     frames:     3,
-                    loops:    true,
-                    fps:        10,
+                    loops:      true,
+                    frame_time: 0.1,
                 ),
             }
         ),     
@@ -59,7 +59,7 @@ SpriteSheet(
                     frames:     8,
                     loops:      true,
                     reverses:   false,
-                    fps:        13,
+                    frame_time: 0.1,
                 )
             }
         ),

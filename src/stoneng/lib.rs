@@ -3,11 +3,12 @@
 extern crate nalgebra_glm as glm;
 extern crate stb_image as stb;
 
-pub mod sprite;
+pub mod spritesheet;
 pub mod event;
+pub mod renderer;
+pub mod ecs;
 mod shader;
 mod error;
-pub mod renderer;
 
 use event::*;
 use std::time::Instant;
@@ -93,8 +94,6 @@ pub fn start<F, G>(config: Config, game: F) where
     
     init_gl();
     game.init();
-    //game.get_renderer().init().unwrap();
-   
 
     let mut last_frame = Instant::now();
     let modifiers = 0;
