@@ -21,5 +21,5 @@ void main() {
     float lum = max(0.0, 1.0-(dist_sq/gs_out.intensity_sq));
     lum *= lum;
 
-    fragColor = vec4(lum * 1.1, 0.0, 0.0, 0.0);
+    fragColor = vec4(clamp(lum * 1.1, 0.0, 1.0), 0.0, 0.0, 1.0);
 }

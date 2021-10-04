@@ -48,6 +48,8 @@ pub trait EngineCore {
     fn mouse_btn(&mut self, event: MouseBtnEvent){}
     /// Called when the cursor moves within the window
     fn cursor_moved(&mut self, x: f64, y: f64) {}
+
+    fn resized(&mut self, x: u32, y: u32) {} 
 }
 
 
@@ -75,7 +77,7 @@ pub fn start<F, G>(config: Config, game: F) where
     F: 'static + FnOnce() -> G {
     
     let mut game = game();
-    let mut window_size = PhysicalSize::new(config.dimensions.0, config.dimensions.1);
+    let window_size = PhysicalSize::new(config.dimensions.0, config.dimensions.1);
     // Spawn the event loop thread and build the context
     let el = EventLoop::new();
     let wb = WindowBuilder::new()
@@ -117,6 +119,9 @@ pub fn start<F, G>(config: Config, game: F) where
                 },
                 WindowEvent::CursorMoved { position, .. } => {
                     game.cursor_moved(position.x, position.y);
+                },
+                WindowEvent::Resized(new_size) => {
+                    game.resized(new_size.width, new_size.height); 
                 },
                 _ => {}
             },

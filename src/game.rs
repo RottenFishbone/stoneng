@@ -19,6 +19,9 @@ pub struct RustyLantern<'a> {
     spritesheet:        SpriteSheet,
     world:              Option<World>,
     dispatcher:         Option<Dispatcher<'a, 'a>>,
+    time:               std::time::Instant,
+
+    cursor:             Option<Entity>,
 }
 
 impl<'a> RustyLantern<'a> {
@@ -27,6 +30,9 @@ impl<'a> RustyLantern<'a> {
             spritesheet: SpriteSheet::from_layout("assets/textures/atlas.ron".into()).unwrap(),
             world: None,
             dispatcher: None,
+            time: std::time::Instant::now(),
+
+            cursor: None,
         }
     }
 }
@@ -37,11 +43,13 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         // Setup ECS
         let mut world = World::new();
         world.insert(resource::DeltaTime(0.0));
+        world.insert(resource::WindowSize(800.0, 600.0));
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(system::StaticSpriteSys, "static_sprite", &[])
             .with(system::AnimSpriteSys, "anim_sprite", &["static_sprite"])
             .with_thread_local(system::SpriteRenderSys::default())
+            .with_thread_local(system::LightRenderSys::default())
             .build();
  
         dispatcher.setup(&mut world);
@@ -68,7 +76,16 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 is_reversing: false,
                 schema: Some(tile.animations.get("walk").unwrap().clone()),
             })
+            .with(component::PointLight { intensity: 100.0 })
             .build();
+
+        self.cursor = Some(
+            world.create_entity()
+                .with(component::Transform::default())
+                .with(component::PointLight { intensity: 100.0 })
+                .build()
+        );
+        
         world.maintain();
 
         self.world = Some(world);
@@ -96,11 +113,31 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
     }
 
     fn cursor_moved(&mut self, x: f64, y: f64) {
+        if let Some(world) = &self.world {
+            if let Some(cursor) = &self.cursor {
+                let win = world.read_resource::<resource::WindowSize>();
 
+                let mut xforms = world.write_component::<component::Transform>();
+                match xforms.get_mut(*cursor) {
+                    Some(xform) => {
+                        xform.translation.x = x as f32;
+                        xform.translation.y = win.1 as f32 - y as f32;
+                    },
+                    None => return,
+                }
+            }
+        }
     }
 
     fn key_input(&mut self, event: event::KeyEvent){}
 
     fn mouse_btn(&mut self, event: event::MouseBtnEvent){}
+
+    fn resized(&mut self, x: u32, y: u32) {
+        if let Some(world) = &self.world {
+            let mut win = world.write_resource::<resource::WindowSize>();
+            *win = resource::WindowSize(x as f32, y as f32);
+        }
+    }
 }
 

@@ -3,9 +3,9 @@ use specs::prelude::*;
 use std::sync::Arc;
 use crate::{
     spritesheet::{SpriteSheet, AnimationSchema},
-    ecs::resource::DeltaTime,
-    ecs::component::{Color, Transform, Sprite, Animation},
-    renderer::{RenderSprite, SpriteRenderer},
+    ecs::resource::{DeltaTime, WindowSize},
+    ecs::component::{Color, Transform, Sprite, Animation, PointLight},
+    renderer::{RenderSprite, SpriteRenderer, RenderLight, LightRenderer},
 };
 
 #[derive(Default)]
@@ -143,22 +143,51 @@ pub struct SpriteRenderSys {
 impl<'a> System<'a> for SpriteRenderSys {
     type SystemData = (ReadStorage<'a, Sprite>,
                        ReadStorage<'a, Transform>,
-                       ReadStorage<'a, Color>);
+                       ReadStorage<'a, Color>,
+                       Read<'a, WindowSize>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (sprites, xforms, colors) = data;
-        
+        let (sprites, xforms, colors, window) = data;
+        let window = (window.0, window.1); 
         // Build the RenderSprite Vec from the components
         let sprites: Vec<RenderSprite> = 
             (&sprites, &xforms, &colors).join()
                 .map(|data| data.into())
                 .collect();
-        self.renderer.render(&sprites);
+        self.renderer.render(&sprites, window);
     }
 
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.renderer = SpriteRenderer::new();
         self.renderer.init(include_bytes!("../../../assets/textures/atlas.png")).unwrap();
+    }
+}
+
+
+#[derive(Default)] 
+pub struct LightRenderSys {
+    renderer: LightRenderer,
+}
+impl<'a> System<'a> for LightRenderSys {
+    type SystemData = (ReadStorage<'a, Transform>,
+                       ReadStorage<'a, PointLight>,
+                       Read<'a, WindowSize>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (xforms, lights, window) = data;
+        let window = (window.0, window.1);
+
+        let lights: Vec<RenderLight> = (&xforms, &lights).join()
+            .map(|data| data.into())
+            .collect();
+
+        self.renderer.render(&lights, window);
+    }
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+        self.renderer = LightRenderer::new();
+        self.renderer.init().unwrap();
+        self.renderer.dither_scale = 2.0;
     }
 }

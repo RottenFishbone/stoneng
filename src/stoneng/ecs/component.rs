@@ -1,7 +1,7 @@
 use specs::{Component, VecStorage, DenseVecStorage};
 use std::sync::Arc;
 use crate::spritesheet::{SpriteSheet, SpriteSchema, AnimationSchema};
-use crate::renderer::RenderSprite;
+use crate::renderer::{RenderSprite, RenderLight};
 
 #[repr(C)]
 #[derive(Debug, Component, Clone, Copy, Default)]
@@ -114,5 +114,12 @@ pub struct Animation {
 pub struct PointLight {
     pub intensity: f32,
 }
-
-
+impl From<(&Transform, &PointLight)> for RenderLight {
+    fn from(data: (&Transform, &PointLight)) -> Self {
+        let (t, p) = data;
+        Self {
+            pos: (t.translation.x, t.translation.y),
+            intensity: p.intensity
+        }
+    }
+}

@@ -7,6 +7,6 @@ uniform float lightmap_scale;
 out vec2 uv_pos;
 
 void main() {
-    uv_pos = tex_pos/lightmap_scale;
+    uv_pos = tex_pos;///lightmap_scale;
     gl_Position = vec4(pos, 0.0, 1.0);
 }
