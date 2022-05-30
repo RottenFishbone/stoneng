@@ -3,10 +3,11 @@
 extern crate nalgebra_glm as glm;
 extern crate stb_image as stb;
 
-pub mod spritesheet;
+pub mod model;
 pub mod event;
 pub mod renderer;
 pub mod ecs;
+
 mod shader;
 mod error;
 
@@ -28,6 +29,7 @@ pub type EngineError = error::EngineError;
 ///
 /// These functions are used as an API to the engine and serve as the 
 /// basis for interaction with the main loop and rendering.
+/// TODO Create a procedural macro to allow for partial implementation 
 pub trait EngineCore {
     // Engine Cycle
     /// Called once, after context creation, before initial draw. 

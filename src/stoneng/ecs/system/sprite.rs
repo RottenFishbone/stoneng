@@ -2,10 +2,11 @@ use specs::{ReadStorage, WriteStorage, System, Join, Read, SystemData};
 use specs::prelude::*;
 use std::sync::Arc;
 use crate::{
-    spritesheet::{SpriteSheet, AnimationSchema},
+    model::spritesheet::{SpriteSheet, AnimationSchema},
     ecs::resource::{DeltaTime, WindowSize},
     ecs::component::{Color, Transform, Sprite, Animation, PointLight},
-    renderer::{RenderSprite, SpriteRenderer, RenderLight, LightRenderer},
+    renderer::sprite::{RenderSprite, SpriteRenderer},
+    renderer::light::{RenderLight, LightRenderer},
 };
 
 #[derive(Default)]
@@ -32,10 +33,12 @@ impl AnimSpriteSys {
         anim.is_reversing = false;        
         anim.schema = sprite.schema.animations.get("idle").map(|s| s.clone());
     }
-
+    
+    /// Moves an animation component's frames forward based in its frame_time and
+    /// the time passed since the last update.
     fn advance_animation(s: &mut Sprite, a: &mut Animation, dt: f64){
         let schema = match &a.schema {
-            Some(schema) => {schema.clone()},
+            Some(schema) => schema.clone(),
             None => return,
         };
         
@@ -160,34 +163,7 @@ impl<'a> System<'a> for SpriteRenderSys {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.renderer = SpriteRenderer::new();
-        self.renderer.init(include_bytes!("../../../assets/textures/atlas.png")).unwrap();
+        self.renderer.init(include_bytes!("../../../../assets/textures/atlas.png")).unwrap();
     }
 }
 
-
-#[derive(Default)] 
-pub struct LightRenderSys {
-    renderer: LightRenderer,
-}
-impl<'a> System<'a> for LightRenderSys {
-    type SystemData = (ReadStorage<'a, Transform>,
-                       ReadStorage<'a, PointLight>,
-                       Read<'a, WindowSize>);
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (xforms, lights, window) = data;
-        let window = (window.0, window.1);
-
-        let lights: Vec<RenderLight> = (&xforms, &lights).join()
-            .map(|data| data.into())
-            .collect();
-
-        self.renderer.render(&lights, window);
-    }
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-        self.renderer = LightRenderer::new();
-        self.renderer.init().unwrap();
-        self.renderer.dither_scale = 2.0;
-    }
-}

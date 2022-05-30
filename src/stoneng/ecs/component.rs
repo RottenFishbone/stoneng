@@ -1,7 +1,10 @@
 use specs::{Component, VecStorage, DenseVecStorage};
 use std::sync::Arc;
-use crate::spritesheet::{SpriteSheet, SpriteSchema, AnimationSchema};
-use crate::renderer::{RenderSprite, RenderLight};
+use crate::model::spritesheet::{SpriteSheet, SpriteSchema, AnimationSchema};
+use crate::renderer::{
+    sprite::RenderSprite, 
+    light::RenderLight
+};
 
 #[repr(C)]
 #[derive(Debug, Component, Clone, Copy, Default)]
@@ -66,6 +69,7 @@ impl Into<(f32, f32, f32, f32)> for Color {
 }
 impl Default for Color { fn default() -> Self { Self { r: 1.0, g: 1.0, b: 1.0, a: 1.0 } } }
 
+/// A Sprite component is a renderable sub-texture from a SpriteSys' atlas
 #[repr(C)]
 #[derive(Debug, Component, Clone)]
 #[storage(VecStorage)]
@@ -84,6 +88,7 @@ impl From<Arc<SpriteSchema>> for Sprite {
     }
 }
 impl From<(&Sprite, &Transform, &Color)> for RenderSprite {
+    /// Builds a the data used to render a sprite from it's requisite components
     fn from(data: (&Sprite, &Transform, &Color)) -> Self {
         let (s, t, c) = data;
         Self {
@@ -107,6 +112,23 @@ pub struct Animation {
     pub frame_progress: f32,
     pub is_reversing:   bool,
     pub schema:         Option<Arc<AnimationSchema>>,
+}
+impl From<Option<Arc<AnimationSchema>>> for Animation {
+    /// Creates an animation component using an AnimationSchema reference
+    fn from(schema: Option<Arc<AnimationSchema>>) -> Self {
+        // Try to spawn a new Option-wrapped Arc
+        let idle_anim = match schema {
+            Some(anim) => Some(anim.clone()),
+            None => None,
+        };
+
+        Self {
+            frame: 0,
+            frame_progress: 0.0,
+            is_reversing: false,
+            schema: idle_anim,
+        }
+    }
 }
 
 #[derive(Debug, Component, Clone, Copy)]

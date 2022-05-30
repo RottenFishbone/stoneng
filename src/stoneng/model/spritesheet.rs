@@ -11,8 +11,7 @@ use std::{
 use serde::Deserialize;
 use glm::{Vec2, Vec3, Vec4};
 
-
-/// Defines a sprite sheets individual sprite schemas.
+/// Defines a sprite sheet's individual sprite schemas.
 #[derive(Deserialize, Debug)]
 pub struct SpriteSheet {
     /// The path to the image file this data describes.
@@ -168,5 +167,13 @@ pub struct SpriteSchema {
     /// A map of animation schema that the sprite can use.
     #[serde(default)]
     pub animations:      HashMap<String, Arc<AnimationSchema>>,
+}
+impl SpriteSchema {
+    pub fn idle_anim(&self) -> Option<Arc<AnimationSchema>> {
+        match self.animations.get("idle") {
+            Some(idle) => Some(idle.clone()),
+            None => None,
+        }
+    }
 }
 
