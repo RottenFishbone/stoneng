@@ -1,0 +1,53 @@
+SpriteSheet(
+    sheet_width: 256,
+    tile_width: 10,
+    sprites: {
+        "human-unarmed": (
+            root: 2,
+            animations: {
+                "idle": (
+                    root: 5
+                ),
+                "idle-down": (
+                    root: 5  
+                ),
+                "walk-down": (
+                    root: 0,
+                    frames: 6,
+                    loops: true,
+                    frame_time: 0.1,
+                ),
+                "idle-up": (
+                    root: 30,
+                ),
+                "walk-up": (
+                    root: 25,
+                    frames: 6,
+                    loops: true,
+                    frame_time: 0.1,
+                ),
+
+                "walk-diag-down": (
+                    root: 50,
+                    frames: 6,
+                    loops: true,
+                    frame_time: 0.1,
+                ),
+
+                "walk-diag-up": (
+                    root: 75,
+                    frames: 6,
+                    loops: true,
+                    frame_time: 0.1,
+                ),
+            
+                "walk-side": (
+                    root: 100,
+                    frames: 6,
+                    loops: true,
+                    frame_time: 0.1,
+                ),
+            }
+        )
+    }
+)

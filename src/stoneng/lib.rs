@@ -87,7 +87,7 @@ pub fn start<F, G>(config: Config, game: F) where
         .with_inner_size(window_size)
         .with_resizable(false);
     let ctx = glutin::ContextBuilder::new()
-        .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 1)))
+        .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 2)))
         .with_gl_profile(glutin::GlProfile::Core)
         .with_vsync(true)
         .build_windowed(wb, &el)

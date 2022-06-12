@@ -3,7 +3,8 @@ use std::sync::Arc;
 use crate::model::spritesheet::{SpriteSheet, SpriteSchema, AnimationSchema};
 use crate::renderer::{
     sprite::RenderSprite, 
-    light::RenderLight
+    light::RenderLight,
+    text::RenderString,
 };
 
 #[repr(C)]
@@ -70,6 +71,8 @@ impl Into<(f32, f32, f32, f32)> for Color {
 impl Default for Color { fn default() -> Self { Self { r: 1.0, g: 1.0, b: 1.0, a: 1.0 } } }
 
 /// A Sprite component is a renderable sub-texture from a SpriteSys' atlas
+///
+/// These are easily convertable into a RenderSprite which is used by OpenGL
 #[repr(C)]
 #[derive(Debug, Component, Clone)]
 #[storage(VecStorage)]
@@ -88,7 +91,7 @@ impl From<Arc<SpriteSchema>> for Sprite {
     }
 }
 impl From<(&Sprite, &Transform, &Color)> for RenderSprite {
-    /// Builds a the data used to render a sprite from it's requisite components
+    /// Builds a the struct used to render a sprite from it's requisite components
     fn from(data: (&Sprite, &Transform, &Color)) -> Self {
         let (s, t, c) = data;
         Self {
@@ -113,9 +116,9 @@ pub struct Animation {
     pub is_reversing:   bool,
     pub schema:         Option<Arc<AnimationSchema>>,
 }
-impl From<Option<Arc<AnimationSchema>>> for Animation {
-    /// Creates an animation component using an AnimationSchema reference
-    fn from(schema: Option<Arc<AnimationSchema>>) -> Self {
+impl From<Option<&Arc<AnimationSchema>>> for Animation {
+    /// Creates an Animation Component using an AnimationSchema reference
+    fn from(schema: Option<&Arc<AnimationSchema>>) -> Self {
         // Try to spawn a new Option-wrapped Arc
         let idle_anim = match schema {
             Some(anim) => Some(anim.clone()),
@@ -145,3 +148,41 @@ impl From<(&Transform, &PointLight)> for RenderLight {
         }
     }
 }
+
+
+#[derive(Debug, Component, Clone)]
+#[storage(DenseVecStorage)]
+pub struct Text {
+    pub content: String,
+    pub size: f32,
+    pub offset: (f32, f32), // TODO implement
+}
+impl Text {
+    pub fn new(content: String, size: f32, offset: (f32, f32)) -> Self {
+        Self { content, size, offset }
+    }
+}
+impl From<String> for Text {
+    fn from(content: String) -> Self {
+        Self { content, size: 1.0, offset: (0.0, 0.0) }
+    }
+}
+impl From<&str> for Text {
+    fn from(content_slice: &str) -> Self {
+        Self { content: String::from(content_slice), size: 1.0, offset: (0.0, 0.0) }
+    }
+}
+impl From<(&Text, &Transform, &Color)> for RenderString {
+    /// Builds a the struct used to render a sprite from it's requisite components
+    fn from(data: (&Text, &Transform, &Color)) -> Self {
+        let (t, x, c) = data;
+        Self {
+            translation: x.translation.into(),
+            size:        t.size,
+            color:       c.clone().into(),
+            
+            text:        t.content.clone(),
+        }
+    }
+}
+

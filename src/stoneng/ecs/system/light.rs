@@ -12,6 +12,9 @@ use crate::{
 };
 
 
+/// A System for rendering lights to the screen
+///
+/// As this is an OpenGL system it must be called on the main thread with `with_thread_local`
 #[derive(Default)] 
 pub struct LightRenderSys {
     renderer: LightRenderer,

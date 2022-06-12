@@ -4,11 +4,12 @@ use std::sync::Arc;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
     ecs::resource::{DeltaTime, WindowSize},
-    ecs::component::{Color, Transform, Sprite, Animation, PointLight},
+    ecs::component::{Color, Transform, Sprite, Animation},
     renderer::sprite::{RenderSprite, SpriteRenderer},
     renderer::light::{RenderLight, LightRenderer},
 };
 
+/// A system to handle non-animated (static) sprites. 
 #[derive(Default)]
 pub struct StaticSpriteSys; 
 impl<'a> System<'a> for StaticSpriteSys {
@@ -138,7 +139,9 @@ impl<'a> System<'a> for AnimSpriteSys {
     }
 }
 
-
+/// A system for rendering Sprites to the screen.
+///
+/// As this is an OpenGL System it must be called on the main thread via `with_tread_local`
 #[derive(Default)]
 pub struct SpriteRenderSys {
     renderer: SpriteRenderer,
@@ -163,7 +166,7 @@ impl<'a> System<'a> for SpriteRenderSys {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.renderer = SpriteRenderer::new();
-        self.renderer.init(include_bytes!("../../../../assets/textures/atlas.png")).unwrap();
+        self.renderer.init(include_bytes!("../../../../assets/textures/sprites.png")).unwrap();
     }
 }
 

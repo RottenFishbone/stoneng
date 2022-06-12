@@ -51,10 +51,10 @@ void main() {
     // This 'sheet_ratio' is used to create a square from the top-left, sheet_ratio wide.
     float sheet_ratio = tile_width / sh_width;
     vec2 unit_uv_verts[4] = vec2[4](
-        vec2( 0.0,         1.0 - sheet_ratio ), // bottom-left
-        vec2( 0.0,         1.0               ), // top-left
-        vec2( sheet_ratio, 1.0 - sheet_ratio ), // bottom-right
-        vec2( sheet_ratio, 1.0               )  // top-right
+        vec2( 0.0,         0.0 + sheet_ratio ), // bottom-left  (quad's top-left)
+        vec2( 0.0,         0.0               ), // top-left     (quad's bottom-left)
+        vec2( sheet_ratio, 0.0 + sheet_ratio ), // bottom-right (quad's top-right)
+        vec2( sheet_ratio, 0.0               )  // top-right
     );
    
     // Building the quad
@@ -89,22 +89,19 @@ void main() {
         // ====== UV calculations ======
         // =============================
         // Calculate the 2d position of the sprite_id 
-        uint spr_in_row = sheet_width / sheet_tile_w;
-        vec2 uv_id = vec2(float(sprite_id % spr_in_row),
-                           float(sprite_id / spr_in_row));
+        uint spr_per_row = sheet_width / sheet_tile_w;
+        vec2 uv_id = vec2(float(sprite_id % spr_per_row),
+                           float(sprite_id / spr_per_row));
         // Scale that position by the width of the tiles in uv-space
         vec2 uv_offset = uv_id * sheet_ratio;
         // Flip the uv unit square vertically (to flip the texture)
-        vec2 flipped_uv = vec2(unit_uv_verts[i].x, 1.0 - unit_uv_verts[i].y);
-        gs_out.tex_coord = flipped_uv * dims 
+        gs_out.tex_coord = unit_uv_verts[i] * dims 
                             + uv_offset        
                             - uv_offset*(dims - vec2(1.0, 1.0));
         gs_out.color_adj = vs_out[0].color;
         
-        // Save the vertex
         EmitVertex();
     }
 
-    // Output the quad
     EndPrimitive();
 }

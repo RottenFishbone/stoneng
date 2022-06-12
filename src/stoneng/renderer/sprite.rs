@@ -12,7 +12,11 @@ use std::{
 use glm::{Vec2, Vec3, Vec4};
 use gl::types::*;
 
-/// A sprite model for rendering. 
+/// An individual sprite model directly used for rendering. 
+///
+/// This is somewhat incompatible with the basic model of ECS as it requires multiple
+/// components be combined into a single data structure before rendering. That said, 
+/// it is trivial to build from each of its components. 
 #[repr(C)]
 #[derive(Debug)]
 pub struct RenderSprite {
@@ -40,6 +44,13 @@ impl Default for RenderSprite {
     }
 }
 
+/// The SpriteRenderer is used to draw RenderSprites to the screen.
+///
+/// It operates by loading an atlas image into a texture on the GPU. It later 
+/// references the atlas' sprites using the data in a RenderSprite.
+///
+/// As the renderer naturally relies on OpenGL to operate, it must only be used
+/// _after_ the OpenGL bindings have been loaded and only on the main thread.
 #[derive(Default, Clone, Copy)]
 pub struct SpriteRenderer {
     initialized: bool,
@@ -52,10 +63,14 @@ pub struct SpriteRenderer {
 }
 
 impl SpriteRenderer {
+    /// Creates an empty SpriteRenderer. `init` must be called before use.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Loads the atlas and initializes the SpriteRenderer's OpenGL objects.
+    /// 
+    /// This can _only_ be called after the OpenGL bindings have been loaded.
     pub fn init(&mut self, atlas: &[u8]) -> Result<(), EngineError> {
         if self.initialized { return Ok(()) }
 
@@ -76,7 +91,7 @@ impl SpriteRenderer {
             _ => {
                 let msg = format!("{}\n{}",
                         "Failed to load texture atlas.",
-                        "Ensure the atlas is a RGBA PNG."
+                        "Ensure the atlas is an RGBA PNG."
                     );  
                 return Err(EngineError::RendererInit(msg));
             },
@@ -90,6 +105,8 @@ impl SpriteRenderer {
         ).unwrap();
  
         unsafe {
+            gl::UseProgram(self.shader);
+            
             // Generate OpenGL objects/buffers
             gl::GenVertexArrays(1, &mut self.vao as *mut GLuint);
             gl::GenBuffers(1, &mut self.abo as *mut GLuint);
@@ -159,33 +176,32 @@ impl SpriteRenderer {
         self.initialized = true;
         Ok(())
     }
-
+    
+    /// Loads a passed set of RenderSprites to the screen. 
     pub fn render(&self, sprites: &[RenderSprite], window_size: (f32, f32)){
 
         if !self.initialized { return; }
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
             gl::Enable(gl::BLEND);
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
             
             gl::UseProgram(self.shader);
             gl::BindVertexArray(self.vao);
             gl::BindTexture(gl::TEXTURE_2D, self.tex);
             
-            // Set uniforms
             let (winx, winy) = window_size;
             gl::Viewport(0, 0, winx as i32, winy as i32);
-            // view_projection
+            
+            // Set uniforms
+                // view_projection
             let view_projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());
-            
-            // sheet_width
+                
+                // sheet_width
             gl::Uniform1i(self.uniform_locations[1], 256);
-            // sheet_tile_w
-            gl::Uniform1i(self.uniform_locations[2], 32);
+                // sheet_tile_w
+            gl::Uniform1i(self.uniform_locations[2], 10);
 
             // Transfer sprite data
             gl::BindBuffer(gl::ARRAY_BUFFER, self.abo);
@@ -202,8 +218,8 @@ impl SpriteRenderer {
          
             // Unbind
             gl::BindTexture(gl::TEXTURE_2D, 0);
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
             gl::BindVertexArray(0);
+            gl::UseProgram(0);
         }
  
     }
