@@ -23,7 +23,7 @@ pub enum VectorSpace {
 /// An individual string to be used to build `RenderChar`s.
 #[derive(Debug)]
 pub struct RenderString {
-    pub translation:    (f32, f32, f32),
+    pub position:       (f32, f32, f32),
     pub size:           f32,
     pub color:          (f32, f32, f32, f32),
     pub text:           String,
@@ -31,8 +31,8 @@ pub struct RenderString {
 impl From<String> for RenderString {
     fn from(text: String) -> Self {
         Self {
-            translation:    (0.0, 0.0, 0.0),
-            size:          1.0,
+            position:       (0.0, 0.0, 0.0),
+            size:           1.0,
             color:          (1.0, 1.0, 1.0, 1.0),
 
             text,
@@ -48,18 +48,18 @@ impl From<String> for RenderString {
 #[repr(C)]
 #[derive(Debug)]
 pub struct RenderChar {
-    pub translation:    (f32, f32, f32),
+    pub position:      (f32, f32, f32),
     // pub offset:      (f32, f32) TODO implement
     pub size:           f32,
     pub color:          (f32, f32, f32, f32),
     pub glyph:          GLbyte,
 }
 impl RenderChar {
-    pub fn new( translation: (f32,f32,f32), 
+    pub fn new( position: (f32,f32,f32), 
                 size:  f32, 
                 color: (f32,f32,f32,f32), 
                 glyph: char) -> Self {
-        Self { translation, size, color, glyph: glyph as GLbyte }
+        Self { position, size, color, glyph: glyph as GLbyte }
     }
 }
 
@@ -218,7 +218,7 @@ impl TextRenderer {
         let mut chars: Vec<RenderChar> = Vec::new();
         for string in strings {
             for (i, c) in string.text.chars().enumerate() {
-                let (x, y, z) = string.translation;
+                let (x, y, z) = string.position;
                 chars.push(
                     RenderChar::new(
                         (x + ((self.kerning + self.glyph_size as f32) * string.size * i as f32), y, z),

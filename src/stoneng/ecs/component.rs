@@ -172,17 +172,24 @@ impl From<&str> for Text {
         Self { content: String::from(content_slice), size: 1.0, offset: (0.0, 0.0) }
     }
 }
-impl From<(&Text, &Transform, &Color)> for RenderString {
+impl From<(&Text, &Position, &Color)> for RenderString {
     /// Builds a the struct used to render a sprite from it's requisite components
-    fn from(data: (&Text, &Transform, &Color)) -> Self {
-        let (t, x, c) = data;
+    fn from(data: (&Text, &Position, &Color)) -> Self {
+        let (t, p, c) = data;
         Self {
-            translation: x.translation.into(),
+            position:    p.clone().into(),
             size:        t.size,
             color:       c.clone().into(),
             
             text:        t.content.clone(),
         }
     }
+}
+
+#[derive(Debug, Component, Clone)]
+#[storage(DenseVecStorage)]
+pub struct Velocity {
+    pub x: f32,
+    pub y: f32,
 }
 

@@ -1,7 +1,7 @@
 use specs::{ReadStorage, WriteStorage, System, Join, Read, SystemData};
 use specs::prelude::*;
 use crate::{
-    ecs::component::{Color, Transform, Text},
+    ecs::component::{Color, Position, Text},
     ecs::resource::WindowSize,
     renderer::text::*,
 };
@@ -13,15 +13,15 @@ pub struct TextRenderSys {
 }
 impl<'a> System<'a> for TextRenderSys {
     type SystemData = (ReadStorage<'a, Text>,
-                       ReadStorage<'a, Transform>,
+                       ReadStorage<'a, Position>,
                        ReadStorage<'a, Color>,
                        Read<'a, WindowSize>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (texts, xforms, colors, window) = data;
+        let (texts, pos, colors, window) = data;
         let window = (window.0, window.1);
         let texts: Vec<RenderString> = 
-            (&texts, &xforms, &colors).join()
+            (&texts, &pos, &colors).join()
                 .map(|data| data.into())
                 .collect();
         self.renderer.render(&texts, window, (0.0, 0.0, 0.0));
