@@ -1,6 +1,7 @@
 pub mod sprite;
 pub mod light;
 pub mod text;
+pub mod movement;
 
 use specs::prelude::*;
 
