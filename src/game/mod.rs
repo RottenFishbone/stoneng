@@ -90,13 +90,12 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
         self.player = Some(PlayerController::from(player_entity));
 
-
         self.cursor = Some(
             world.create_entity()
                 .with(component::Transform::default())
                 .with(component::PointLight { intensity: 300.0 })
                 .with(component::Text{ 
-                    content: String::from(">9000"), size: 2.0, offset: (0.0, 0.0) 
+                    content: String::from(">9000"), size: 4.0, offset: (0.0, 0.0) 
                 })
                 .with(component::Color::default())
                 .build()
@@ -110,8 +109,16 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
     fn tick(&mut self, dt: f64){
         if let Some(world) = &mut self.world {
+            world.maintain();
+        }
+
+        if let Some(world) = &mut self.world {
             let mut dt_res = world.write_resource::<resource::DeltaTime>();
             *dt_res = resource::DeltaTime(dt);
+            
+            if let Some(player) = &mut self.player {
+                player.tick(dt, world);
+            }
         }
     }
 
@@ -123,9 +130,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         }              
     }
     fn post_render(&mut self) {
-        if let Some(world) = &mut self.world {
-            world.maintain();
-        }
+
     }
 
     fn key_input(&mut self, event: event::KeyEvent){
@@ -154,7 +159,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             };
 
             if let Some(dir) = dir {
-                player.set_move(dir, state, world);
+                player.set_move_input(dir, state, world);
             }
         }
     }

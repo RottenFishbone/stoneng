@@ -13,7 +13,8 @@
 - Convert to more efficient system (that doesn't rebuild RenderChar)
 
 # Player Controller
-- Implement
+- Provide smoother movement
+- Additional states (weapons etc)
 
 # Animation Controller
 - Create a more usable system of Animation management, perhaps custom animation states
