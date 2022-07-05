@@ -6,6 +6,9 @@ as well as develop an open-source game for eventual release.
 
 As it stands, StoneEng functions as the game's renderer, driver and ECS backend (through 'Specs').
 
+### Example
+![stoneng_demo](https://user-images.githubusercontent.com/2926677/177432778-a704429f-dac4-47ab-8797-3cee96cae1ae.gif)
+
 ### Major dependencies
 - [Specs](https://github.com/amethyst/specs) for the basis of the Entity-Component-System.
 - [glutin](https://github.com/rust-windowing/glutin) for windowing and OpenGL context.
