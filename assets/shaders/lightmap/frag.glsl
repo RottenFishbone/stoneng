@@ -15,8 +15,8 @@ void main() {
     float dist_sq = dot(delta_pos, delta_pos);
 
     // Round the corners from the quad
-    //if (dist_sq >= gs_out.intensity_sq)
-    //    discard; 
+    if (dist_sq >= gs_out.intensity_sq)
+        discard; 
 
     float lum = max(0.0, 1.0-(dist_sq/gs_out.intensity_sq));
     lum *= lum;
