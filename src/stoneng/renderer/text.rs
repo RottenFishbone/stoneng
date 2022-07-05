@@ -238,13 +238,9 @@ impl TextRenderer {
             gl::Viewport(0, 0, winx as i32, winy as i32);
 
             // Uniforms
-                // Build a view matrix from the camera tuple
-            let mut view_mat: glm::Mat4 = glm::identity();
-            view_mat = glm::translate(&view_mat, &glm::vec3(-cam.0, -cam.1, -cam.2));
-                // Build orthographic projection matrix using the window size
+            let view: glm::Mat4 = glm::translation(&glm::Vec3::new(-cam.0, -cam.1, -cam.2));
             let projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
-                // Combine into a view-projection matrix and send to the shader
-            let view_projection = projection * view_mat;
+            let view_projection = projection * view;
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());
             

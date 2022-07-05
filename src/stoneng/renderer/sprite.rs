@@ -9,7 +9,7 @@ use std::{
     path::Path,
     mem::size_of,
 };
-use glm::{Vec2, Vec3, Vec4};
+use glm::{Vec2, Vec3, Vec4, Mat4};
 use gl::types::*;
 
 /// An individual sprite model directly used for rendering. 
@@ -59,7 +59,7 @@ pub struct SpriteRenderer {
     vao:        GLuint,
     abo:        GLuint,
     tex:        GLuint,
-    uniform_locations:   [GLint; 3],
+    uniform_locations:   [GLint; 4],
 }
 
 impl SpriteRenderer {
@@ -178,7 +178,7 @@ impl SpriteRenderer {
     }
     
     /// Loads a passed set of RenderSprites to the screen. 
-    pub fn render(&self, sprites: &[RenderSprite], window_size: (f32, f32), view: (f32, f32, f32)){
+    pub fn render(&self, sprites: &[RenderSprite], window_size: (f32, f32), cam: (f32, f32, f32)){
 
         if !self.initialized { return; }
         unsafe {
@@ -194,7 +194,9 @@ impl SpriteRenderer {
             
             // Set uniforms
                 // view_projection
-            let view_projection = glm::ortho(0.0+ view.0, winx+view.0, 0.0+view.1, winy+view.1, -1.0, 1.0);
+            let projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
+            let view: Mat4 = glm::translation(&Vec3::new(-cam.0, -cam.1, -cam.2));
+            let view_projection = projection * view;
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());
                 
