@@ -2,15 +2,11 @@
 - LoS shadow casting
 - Non-dithered setting
 
-# Camera
-- Implement system
-
 # Sprites
 - Rotation
 - Icons/UI sprites
 
 # ECS
-- Remove transform
 
 # Text
 - Convert to more efficient system (that doesn't rebuild RenderChar)
@@ -24,5 +20,13 @@
 - Create a more usable system of Animation management, perhaps custom animation states
   that store relevant data and can be accessed/swapped to easily
 
+# Camera controller
+- Ideally a system with a state of which camera entity to use
+- Allow for different camera modes (aim at cursor, look-ahead, soft follow, hard follow etc)
+
 # UI
 - Implement
+
+# Art
+- Round out tileset
+- Effects
