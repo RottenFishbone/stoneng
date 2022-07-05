@@ -99,7 +99,13 @@ impl PlayerController {
         
         player_vel.x = vel.x;
         player_vel.y = vel.y;
-    }
+    
+        let positions = world.read_component::<component::Position>();
+        let player_pos = positions.get(self.player.entity).unwrap();
+        let mut view = world.write_resource::<resource::View>();
+        let window = world.read_resource::<resource::WindowSize>();
+        *view = resource::View(player_pos.x - window.0/2.0, player_pos.y - window.1/2.0, player_pos.z);
+    }   
 
     pub fn set_move_input(&mut self, direction: MoveDir, pressed: bool, world: &World) {
         let dir_id = direction as usize;
@@ -109,9 +115,9 @@ impl PlayerController {
 
         self.cur_move_input[dir_id] = pressed;
 
-        let mut xforms  = world.write_component::<component::Transform>();
-        let mut player_xform = match xforms.get_mut(self.player.entity) {
-            Some(xform) => xform,
+        let mut scale = world.write_component::<component::Scale>();
+        let mut player_scale = match scale.get_mut(self.player.entity) {
+            Some(scale) => scale,
             None => return,
         };
         
@@ -132,10 +138,10 @@ impl PlayerController {
             right-left
         };
         
-        // Check if the animation should be flipped, given the current xform and movement
-        if (x_movement == -1 && player_xform.scale.x > 0.0) ||
-           (x_movement ==  1 && player_xform.scale.x < 0.0) {
-            player_xform.scale.x *= -1.0;
+        // Check if the animation should be flipped, given the current pos and movement
+        if (x_movement == -1 && player_scale.x > 0.0) ||
+           (x_movement ==  1 && player_scale.x < 0.0) {
+            player_scale.x *= -1.0;
         }
 
         let anim = match y_movement {

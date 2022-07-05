@@ -3,8 +3,8 @@ use specs::prelude::*;
 use std::sync::Arc;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
-    ecs::resource::{DeltaTime, WindowSize},
-    ecs::component::{Color, Transform, Sprite, Animation, PointLight},
+    ecs::resource::{DeltaTime, WindowSize, View},
+    ecs::component::{Color, Sprite, Position, Animation, PointLight},
     renderer::{
         sprite::{RenderSprite, SpriteRenderer}, 
         light::{RenderLight, LightRenderer},
@@ -20,19 +20,20 @@ pub struct LightRenderSys {
     renderer: LightRenderer,
 }
 impl<'a> System<'a> for LightRenderSys {
-    type SystemData = (ReadStorage<'a, Transform>,
+    type SystemData = (ReadStorage<'a, Position>,
                        ReadStorage<'a, PointLight>,
-                       Read<'a, WindowSize>);
+                       Read<'a, WindowSize>,
+                       Read<'a, View>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (xforms, lights, window) = data;
+        let (pos, lights, window, view) = data;
         let window = (window.0, window.1);
-
-        let lights: Vec<RenderLight> = (&xforms, &lights).join()
+        let view = (view.0, view.1, view.2);
+        let lights: Vec<RenderLight> = (&pos, &lights).join()
             .map(|data| data.into())
             .collect();
 
-        self.renderer.render(&lights, window);
+        self.renderer.render(&lights, window, view);
     }
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);

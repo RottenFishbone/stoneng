@@ -53,6 +53,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         let mut world = World::new();
         world.insert(resource::DeltaTime(0.0));
         world.insert(resource::WindowSize(800.0, 600.0));
+        world.insert(resource::View(0.0 ,0.0, 0.0));
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(system::movement::MovementSys, "move_sys", &[])
@@ -66,38 +67,38 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
  
         dispatcher.setup(&mut world);
         let tile = self.spritesheet.sprites.get("human-unarmed").unwrap().clone();
-        let mut xform = component::Transform::default(); 
-        xform.translation.x = 32.0;
-        xform.translation.y = 32.0;
-        xform.scale = Scale { x: 6.0, y: 6.0 };
+        let mut pos = component::Position { x: 32.0, y: 32.0, z: 0.0 };
+        let scale = component::Scale { x: 6.0, y: 6.0 };
         world.create_entity()
-            .with(xform.clone())
+            .with(pos.clone())
+            .with(scale.clone())
             .with(component::Color::default())
             .with(component::Sprite::from(tile.clone())) 
             .build();
 
-        xform.translation.x = 100.0;
-        xform.translation.y = 100.0;
+        pos.x = 100.0;
+        pos.y = 100.0;
         let player_anim = tile.animations.get("walk-side"); 
         let player_entity = world.create_entity()
-                .with(xform)
+                .with(pos)
+                .with(scale)
                 .with(component::Color::default())
                 .with(component::Sprite::from(tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight { intensity: 100.0 })
+                .with(component::PointLight { intensity: 150.0 })
                 .with(component::Velocity { x: 0.0, y: 0.0 })
+                .with(component::Text{ 
+                    content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
+                })
                 .build();
 
         self.player = Some(PlayerController::from(player_entity));
 
         self.cursor = Some(
             world.create_entity()
-                .with(component::Transform::default())
-                .with(component::PointLight { intensity: 300.0 })
-                .with(component::Text{ 
-                    content: String::from(">9000"), size: 4.0, offset: (0.0, 0.0) 
-                })
-                .with(component::Color::default())
+                .with(component::Position { x:0.0, y:0.0, z:0.0 })
+                //.with(component::PointLight { intensity: 300.0 })
+                //.with(component::Color::default())
                 .build()
         );
         
@@ -157,9 +158,24 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 KeyCode::S => Some(MoveDir::Down),
                 _ => None,
             };
-
+        
             if let Some(dir) = dir {
                 player.set_move_input(dir, state, world);
+                return;
+            }
+            
+            if state {
+                let dv = match key {
+                    KeyCode::Right => (10.0, 0.0),
+                    KeyCode::Left => (-10.0, 0.0),
+                    KeyCode::Up => (0.0, 10.0),
+                    KeyCode::Down => (0.0, -10.0),
+                    _ => (0.0, 0.0),
+                };
+
+                let mut view_res = world.write_resource::<resource::View>();
+                let (x,y,z) = (view_res.0, view_res.1, view_res.2);
+                *view_res = resource::View(x + dv.0, y + dv.1, z);
             }
         }
     }
@@ -170,12 +186,13 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         if let Some(world) = &self.world {
             if let Some(cursor) = &self.cursor {
                 let win = world.read_resource::<resource::WindowSize>();
+                let view = world.read_resource::<resource::View>();
 
-                let mut xforms = world.write_component::<component::Transform>();
-                match xforms.get_mut(*cursor) {
-                    Some(xform) => {
-                        xform.translation.x = x as f32;
-                        xform.translation.y = win.1 as f32 - y as f32;
+                let mut pos = world.write_component::<component::Position>();
+                match pos.get_mut(*cursor) {
+                    Some(pos) => {
+                        pos.x = x as f32 + view.0;
+                        pos.y = win.1 as f32 - y as f32 + view.1;
                     },
                     None => return,
                 }

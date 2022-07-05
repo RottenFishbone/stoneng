@@ -9,11 +9,15 @@
 - Rotation
 - Icons/UI sprites
 
+# ECS
+- Remove transform
+
 # Text
 - Convert to more efficient system (that doesn't rebuild RenderChar)
 
 # Player Controller
-- Provide smoother movement
+- Fix velocity-based movement to allow for faster than max speed impulses
+- Aim at cursor functionality
 - Additional states (weapons etc)
 
 # Animation Controller

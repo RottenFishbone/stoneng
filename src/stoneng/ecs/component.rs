@@ -48,11 +48,10 @@ impl Default for Scale { fn default() -> Self { Self {x: 1.0, y: 1.0} } }
 #[repr(C)]
 #[derive(Debug, Component, Clone, Copy, Default)]
 #[storage(VecStorage)]
-pub struct Transform {
-    pub translation:    Position,
-    pub scale:          Scale,
-    pub rotation:       f32,
+pub struct Rotation {
+    pub deg: f32,
 }
+
 
 #[repr(C)]
 #[derive(Debug, Component, Clone, Copy)]
@@ -90,20 +89,20 @@ impl From<Arc<SpriteSchema>> for Sprite {
         }
     }
 }
-impl From<(&Sprite, &Transform, &Color)> for RenderSprite {
+impl From<(&Sprite, &Position, &Scale, &Color)> for RenderSprite {
     /// Builds a the struct used to render a sprite from it's requisite components
-    fn from(data: (&Sprite, &Transform, &Color)) -> Self {
-        let (s, t, c) = data;
+    fn from(data: (&Sprite, &Position, &Scale, &Color)) -> Self {
+        let (spr, p, s, c) = data;
         Self {
-            translation: t.translation.into(),
-            scale:       t.scale.into(),
-            rotation:    t.rotation,
-            
+            translation: p.clone().into(),
+            scale:       s.clone().into(),
+            rotation:    0.0,
+
             color:       c.clone().into(),
 
-            sprite_id:      s.id,
-            sprite_dims:    s.dims,
-            sprite_flags:   s.flags,
+            sprite_id:      spr.id,
+            sprite_dims:    spr.dims,
+            sprite_flags:   spr.flags,
         }
     }
 }
@@ -139,12 +138,12 @@ impl From<Option<&Arc<AnimationSchema>>> for Animation {
 pub struct PointLight {
     pub intensity: f32,
 }
-impl From<(&Transform, &PointLight)> for RenderLight {
-    fn from(data: (&Transform, &PointLight)) -> Self {
-        let (t, p) = data;
+impl From<(&Position, &PointLight)> for RenderLight {
+    fn from(data: (&Position, &PointLight)) -> Self {
+        let (p, l) = data;
         Self {
-            pos: (t.translation.x, t.translation.y),
-            intensity: p.intensity
+            pos: (p.x, p.y),
+            intensity: l.intensity
         }
     }
 }
@@ -155,7 +154,7 @@ impl From<(&Transform, &PointLight)> for RenderLight {
 pub struct Text {
     pub content: String,
     pub size: f32,
-    pub offset: (f32, f32), // TODO implement
+    pub offset: (f32, f32),
 }
 impl Text {
     pub fn new(content: String, size: f32, offset: (f32, f32)) -> Self {
@@ -177,7 +176,7 @@ impl From<(&Text, &Position, &Color)> for RenderString {
     fn from(data: (&Text, &Position, &Color)) -> Self {
         let (t, p, c) = data;
         Self {
-            position:    p.clone().into(),
+            position:    (p.x + t.offset.0, p.y + t.offset.1, p.z),
             size:        t.size,
             color:       c.clone().into(),
             

@@ -10,8 +10,7 @@
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
-uniform mat4 projection;
-uniform mat4 view;
+uniform mat4 view_projection;
 uniform float glyph_size;
 uniform float atlas_width;
 
@@ -64,7 +63,7 @@ void main() {
         // Scale the unit quad to size and offset the point by the corresponding
         // unit vertex position
         vec4 scaled_vert_offset = quad_verts[i] * (glyph_size/2.0) * size[0];
-        gl_Position = projection * (gl_in[0].gl_Position + scaled_vert_offset);
+        gl_Position = view_projection * (gl_in[0].gl_Position + scaled_vert_offset);
         
         gs_out.tex_coord = unit_uv_verts[i] + uv_offset;
         gs_out.tint = color[0];

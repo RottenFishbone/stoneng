@@ -22,7 +22,7 @@ use gl::types::*;
 pub struct RenderSprite {
     pub translation:    (f32, f32, f32),
     pub scale:          (f32, f32),
-    pub rotation:        f32,
+    pub rotation:        f32,   // TODO implement
     pub color:          (f32, f32, f32, f32),
     pub sprite_id:      u16,
     pub sprite_dims:    u8,
@@ -178,7 +178,7 @@ impl SpriteRenderer {
     }
     
     /// Loads a passed set of RenderSprites to the screen. 
-    pub fn render(&self, sprites: &[RenderSprite], window_size: (f32, f32)){
+    pub fn render(&self, sprites: &[RenderSprite], window_size: (f32, f32), view: (f32, f32, f32)){
 
         if !self.initialized { return; }
         unsafe {
@@ -194,7 +194,7 @@ impl SpriteRenderer {
             
             // Set uniforms
                 // view_projection
-            let view_projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
+            let view_projection = glm::ortho(0.0+ view.0, winx+view.0, 0.0+view.1, winy+view.1, -1.0, 1.0);
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());
                 

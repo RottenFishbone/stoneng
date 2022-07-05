@@ -31,7 +31,7 @@ pub struct LightRenderer {
     ebo:        GLuint,
     abos:       [GLuint; 2],
     tex:        GLuint,
-    uniform_locations:   [GLint; 3],
+    uniform_locations:   [GLint; 4],
 }
 impl LightRenderer {
     pub fn new() -> Self {
@@ -149,10 +149,12 @@ impl LightRenderer {
             );
 
             self.uniform_locations[0] = shader::get_uniform_location(
-                self.shaders[0], "view_projection");
+                self.shaders[0], "projection");
             self.uniform_locations[1] = shader::get_uniform_location(
-                self.shaders[0], "px_scale");
+                self.shaders[0], "view");
             self.uniform_locations[2] = shader::get_uniform_location(
+                self.shaders[0], "px_scale");
+            self.uniform_locations[3] = shader::get_uniform_location(
                 self.shaders[1], "lightmap_scale");
 
             gl::BindVertexArray(0);
@@ -167,12 +169,14 @@ impl LightRenderer {
 
     }
 
-    pub fn render(&self, lights: &[RenderLight], window_size: (f32, f32)) {
+    pub fn render(&self, lights: &[RenderLight], window_size: (f32, f32), cam: (f32, f32, f32)) {
         let (winx, winy) = window_size;
         let (s_winx, s_winy) = (window_size.0 / self.dither_scale, 
                                 window_size.1 / self.dither_scale);
-        let scaled_vp = glm::ortho(0.0, s_winx, 0.0, s_winy, -1.0, 1.0);
-        
+        let scaled_projection = glm::ortho(0.0, s_winx, 0.0, s_winy, -1.0, 1.0);
+        let mut view_mat: glm::Mat4 = glm::identity();
+        view_mat = glm::translate(&view_mat, &glm::vec3(-cam.0, -cam.1, -cam.2));
+
         // ============== Render lightmap to framebuffer =============
         unsafe {
             gl::Enable(gl::BLEND);
@@ -198,12 +202,15 @@ impl LightRenderer {
             gl::BlendFunc(gl::ONE, gl::ONE);
             
             gl::Viewport(0, 0, s_winx as i32, s_winy as i32);
-            // view_projection
+            // projection
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
-                                 scaled_vp.as_ptr());
+                                 scaled_projection.as_ptr());
+            // view
+            gl::UniformMatrix4fv(self.uniform_locations[1], 1, gl::FALSE, 
+                                view_mat.as_ptr());
     
             // px_scale
-            gl::Uniform1f(self.uniform_locations[1], self.dither_scale);
+            gl::Uniform1f(self.uniform_locations[2], self.dither_scale);
 
             // Load point light data
             gl::BindBuffer(gl::ARRAY_BUFFER, self.abos[0]);
@@ -237,7 +244,7 @@ impl LightRenderer {
             gl::Viewport(0, 0, winx as i32, winy as i32);
             
             // lightmap_scale
-            gl::Uniform1f(self.uniform_locations[2], self.dither_scale);
+            gl::Uniform1f(self.uniform_locations[3], self.dither_scale);
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);
 
             gl::BindTexture(gl::TEXTURE_2D, 0);

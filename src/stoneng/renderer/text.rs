@@ -78,7 +78,7 @@ pub struct TextRenderer {
     vao:        GLuint,
     abo:        GLuint,
     tex:        GLuint,
-    uniform_locations:  [GLint; 4],
+    uniform_locations:  [GLint; 3],
 
     glyph_size: u32,
     atlas_width: u32,
@@ -89,10 +89,10 @@ impl Default for TextRenderer {
         Self {
             initialized: false,
             shader: 0, vao: 0, abo: 0, tex: 0,
-            uniform_locations: [0; 4],
+            uniform_locations: [0; 3],
             glyph_size: 0,
             atlas_width: 0,
-            kerning: -3.0,    
+            kerning: -2.0,    
         }
     }
 }
@@ -191,12 +191,10 @@ impl TextRenderer {
 
             // Uniform locations
             self.uniform_locations[0] = shader::get_uniform_location(
-                self.shader, "projection");
+                self.shader, "view_projection");
             self.uniform_locations[1] = shader::get_uniform_location(
-                self.shader, "view");
-            self.uniform_locations[2] = shader::get_uniform_location(
                 self.shader, "glyph_size");
-            self.uniform_locations[3] = shader::get_uniform_location(
+            self.uniform_locations[2] = shader::get_uniform_location(
                 self.shader, "atlas_width");
 
             // Unbind states
@@ -211,7 +209,7 @@ impl TextRenderer {
     }
 
     /// Draws a set of RenderStrings to the screen.
-    pub fn render(&self, strings: &[RenderString], window_size: (f32, f32), view: (f32, f32, f32)){
+    pub fn render(&self, strings: &[RenderString], window_size: (f32, f32), cam: (f32, f32, f32)){
         if !self.initialized { return; }
         
         // Build a set of render chars using the passed render strings
@@ -240,17 +238,19 @@ impl TextRenderer {
             gl::Viewport(0, 0, winx as i32, winy as i32);
 
             // Uniforms
+                // Build a view matrix from the camera tuple
+            let mut view_mat: glm::Mat4 = glm::identity();
+            view_mat = glm::translate(&view_mat, &glm::vec3(-cam.0, -cam.1, -cam.2));
+                // Build orthographic projection matrix using the window size
             let projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
+                // Combine into a view-projection matrix and send to the shader
+            let view_projection = projection * view_mat;
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
-                                 projection.as_ptr());
+                                 view_projection.as_ptr());
             
-            let view = Vec3::new(view.0, view.1, view.2);
-            let view_mat = glm::translation(&view);
-            gl::UniformMatrix4fv(self.uniform_locations[1], 1, gl::FALSE,
-                                 view_mat.as_ptr());
-
-            gl::Uniform1f(self.uniform_locations[2], self.glyph_size as GLfloat);
-            gl::Uniform1f(self.uniform_locations[3], self.atlas_width as GLfloat);
+                // Send texture's glyph layout
+            gl::Uniform1f(self.uniform_locations[1], self.glyph_size as GLfloat);
+            gl::Uniform1f(self.uniform_locations[2], self.atlas_width as GLfloat);
 
             // Vertex data
             gl::BindBuffer(gl::ARRAY_BUFFER, self.abo);

@@ -2,8 +2,9 @@
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
-uniform mat4 view_projection;
-
+uniform mat4 view;
+uniform mat4 projection;
+uniform float px_scale;
 in VS_OUT {
     float intensity;
 } vs_out[];
@@ -26,11 +27,12 @@ void main() {
     );
 
     float int_sq = vs_out[0].intensity * vs_out[0].intensity;
+    vec4 view_offset = vec4(view[3].xy, 0.0, 0.0) / px_scale;
     for (int i = 0; i < 4; ++i) {
-        gl_Position = view_projection * (gl_in[0].gl_Position + unit_quad_verts[i] * intensity);
+        gl_Position = projection * (gl_in[0].gl_Position + view_offset + unit_quad_verts[i] * intensity);
         gl_Position.w = 1.0;
         gs_out.intensity_sq = int_sq;
-        gs_out.center = gl_in[0].gl_Position.xy;
+        gs_out.center = view_offset.xy + gl_in[0].gl_Position.xy;
         EmitVertex();
     }
     EndPrimitive();

@@ -3,8 +3,8 @@ use specs::prelude::*;
 use std::sync::Arc;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
-    ecs::resource::{DeltaTime, WindowSize},
-    ecs::component::{Color, Transform, Sprite, Animation},
+    ecs::resource::{DeltaTime, WindowSize, View},
+    ecs::component::{Color, Sprite, Position, Scale, Animation},
     renderer::sprite::{RenderSprite, SpriteRenderer},
     renderer::light::{RenderLight, LightRenderer},
 };
@@ -148,19 +148,22 @@ pub struct SpriteRenderSys {
 }
 impl<'a> System<'a> for SpriteRenderSys {
     type SystemData = (ReadStorage<'a, Sprite>,
-                       ReadStorage<'a, Transform>,
+                       ReadStorage<'a, Position>,
+                       ReadStorage<'a, Scale>,
                        ReadStorage<'a, Color>,
-                       Read<'a, WindowSize>);
+                       Read<'a, WindowSize>,
+                       Read<'a, View>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (sprites, xforms, colors, window) = data;
+        let (sprites, positions, scales, colors, window, view) = data;
         let window = (window.0, window.1); 
+        let view = (view.0, view.1, view.2);
         // Build the RenderSprite Vec from the components
         let sprites: Vec<RenderSprite> = 
-            (&sprites, &xforms, &colors).join()
+            (&sprites, &positions, &scales, &colors).join()
                 .map(|data| data.into())
                 .collect();
-        self.renderer.render(&sprites, window);
+        self.renderer.render(&sprites, window, view);
     }
 
     fn setup(&mut self, world: &mut World) {
