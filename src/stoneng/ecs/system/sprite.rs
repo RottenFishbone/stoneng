@@ -53,7 +53,7 @@ impl AnimSpriteSys {
         
         // Prevent overflow
         if frames_to_adv > 255.0 { 
-            s.id = schema.root + (a.frame as u16);
+            s.id = schema.root + (a.frame as u32);
             return; 
         } 
 
@@ -94,7 +94,7 @@ impl AnimSpriteSys {
                 // Reverse all the frames, if possible
                 if a.frame >= adv_frames {
                     a.frame -= adv_frames;
-                    s.id -= adv_frames as u16;
+                    s.id -= adv_frames as u32;
                     break;
                 }
                 // Not all frames could be reversed
@@ -132,7 +132,7 @@ impl<'a> System<'a> for AnimSpriteSys {
 
             // Apply the animation changes, if it exists
             match &a.schema {
-                Some(schema) => s.id = schema.root + (a.frame as u16),
+                Some(schema) => s.id = schema.root + (a.frame as u32),
                 None => s.id = s.schema.root,
             };
         }

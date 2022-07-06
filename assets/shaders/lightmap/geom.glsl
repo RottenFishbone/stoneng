@@ -30,7 +30,7 @@ void main() {
     vec4 view_offset = vec4(view[3].xy, 0.0, 0.0) / px_scale;
     for (int i = 0; i < 4; ++i) {
         gl_Position = projection * (gl_in[0].gl_Position + view_offset + unit_quad_verts[i] * intensity);
-        gl_Position.w = 1.0;
+        gl_Position.zw = vec2(0.0, 1.0);
         gs_out.intensity_sq = int_sq;
         gs_out.center = view_offset.xy + gl_in[0].gl_Position.xy;
         EmitVertex();

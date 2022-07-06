@@ -29,6 +29,7 @@ pub struct RustyLantern<'a> {
     time:               std::time::Instant,
 
     cursor:             Option<Entity>,
+    cursor_pos:         (f64, f64),
     player:             Option<PlayerController>,
 }
 
@@ -41,6 +42,7 @@ impl<'a> RustyLantern<'a> {
             time: std::time::Instant::now(),
 
             cursor: None,
+            cursor_pos: (0.0, 0.0),
             player: None,
         }
     }
@@ -67,7 +69,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
  
         dispatcher.setup(&mut world);
         let tile = self.spritesheet.sprites.get("human-unarmed").unwrap().clone();
-        let mut pos = component::Position { x: 32.0, y: 32.0, z: 0.0 };
+        let mut pos = component::Position { x: 32.0, y: 32.0, z: -5.0 };
         let scale = component::Scale { x: 6.0, y: 6.0 };
         world.create_entity()
             .with(pos.clone())
@@ -85,7 +87,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .with(component::Color::default())
                 .with(component::Sprite::from(tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight { intensity: 150.0 })
+                .with(component::PointLight { intensity: 250.0 })
                 .with(component::Velocity { x: 0.0, y: 0.0 })
                 .with(component::Text{ 
                     content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
@@ -94,11 +96,16 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
         self.player = Some(PlayerController::from(player_entity));
 
+        let cursor_sprite = self.spritesheet.sprites.get("crosshair")
+                .expect(r#""crosshair" sprite could not be found"#)
+                .clone();
+
         self.cursor = Some(
             world.create_entity()
-                .with(component::Position { x:0.0, y:0.0, z:0.0 })
-                //.with(component::PointLight { intensity: 300.0 })
-                //.with(component::Color::default())
+                .with(component::Position { x:0.0, y:0.0, z:1.0 })
+                .with(component::Scale { x: 3.0, y: 3.0 })
+                .with(component::Sprite::from(cursor_sprite))
+                .with(component::Color::default())
                 .build()
         );
         
@@ -119,6 +126,18 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             
             if let Some(player) = &mut self.player {
                 player.tick(dt, world);
+            }
+    
+            if let Some(cursor) = self.cursor {
+                let view = world.read_resource::<resource::View>();
+                let (view_x,view_y,view_z) = (view.0, view.1, view.2);
+                let win = world.read_resource::<resource::WindowSize>();
+                let (win_x, win_y) = (win.0, win.1);
+
+                let mut positions = world.write_storage::<component::Position>();
+                let mut cursor_pos = positions.get_mut(cursor).unwrap();
+                cursor_pos.x = self.cursor_pos.0 as f32 + view_x;
+                cursor_pos.y = win_y - self.cursor_pos.1 as f32 + view_y;
             }
         }
     }
@@ -183,21 +202,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
     fn mouse_btn(&mut self, event: event::MouseBtnEvent){}
 
     fn cursor_moved(&mut self, x: f64, y: f64) {
-        if let Some(world) = &self.world {
-            if let Some(cursor) = &self.cursor {
-                let win = world.read_resource::<resource::WindowSize>();
-                let view = world.read_resource::<resource::View>();
-
-                let mut pos = world.write_component::<component::Position>();
-                match pos.get_mut(*cursor) {
-                    Some(pos) => {
-                        pos.x = x as f32 + view.0;
-                        pos.y = win.1 as f32 - y as f32 + view.1;
-                    },
-                    None => return,
-                }
-            }
-        }
+        self.cursor_pos = (x, y);
     }
 
     fn resized(&mut self, x: u32, y: u32) {

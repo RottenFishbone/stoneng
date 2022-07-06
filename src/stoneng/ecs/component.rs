@@ -76,7 +76,7 @@ impl Default for Color { fn default() -> Self { Self { r: 1.0, g: 1.0, b: 1.0, a
 #[derive(Debug, Component, Clone)]
 #[storage(VecStorage)]
 pub struct Sprite {
-    pub id:     u16,
+    pub id:     u32,
     pub dims:   u8,
     pub flags:  u8,
     pub schema: Arc<SpriteSchema>,
@@ -103,6 +103,7 @@ impl From<(&Sprite, &Position, &Scale, &Color)> for RenderSprite {
             sprite_id:      spr.id,
             sprite_dims:    spr.dims,
             sprite_flags:   spr.flags,
+            reserved:       0,
         }
     }
 }

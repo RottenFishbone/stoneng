@@ -24,9 +24,10 @@ pub struct RenderSprite {
     pub scale:          (f32, f32),
     pub rotation:        f32,   // TODO implement
     pub color:          (f32, f32, f32, f32),
-    pub sprite_id:      u16,
+    pub sprite_id:      u32,
     pub sprite_dims:    u8,
     pub sprite_flags:   u8,
+    pub reserved:       u16,
 }
 impl Default for RenderSprite {
     fn default() -> Self {
@@ -40,6 +41,7 @@ impl Default for RenderSprite {
             sprite_id:    0,
             sprite_dims:  0,
             sprite_flags: 0,
+            reserved:     0,
         }
     }
 }
@@ -152,10 +154,15 @@ impl SpriteRenderer {
             gl::VertexAttribPointer(3, 4, gl::FLOAT, gl::FALSE, stride, 
                                     color_offset as *const GLvoid);  
 
-            // Sprite Data
-            let data_offset = color_offset + (size_of::<f32>() as i32) * 4;
+            // Sprite ID
+            let id_offset = color_offset + (size_of::<f32>() as i32) * 4;
             gl::EnableVertexAttribArray(4);
             gl::VertexAttribIPointer(4, 1, gl::UNSIGNED_INT, stride, 
+                                     id_offset as *const GLvoid); 
+            // Sprite Data
+            let data_offset = id_offset + (size_of::<u32>() as i32);
+            gl::EnableVertexAttribArray(5);
+            gl::VertexAttribIPointer(5, 1, gl::UNSIGNED_INT, stride, 
                                      data_offset as *const GLvoid); 
 
             // Find and store the uniform locations
@@ -182,9 +189,9 @@ impl SpriteRenderer {
 
         if !self.initialized { return; }
         unsafe {
-            gl::Enable(gl::DEPTH_TEST);
             gl::Enable(gl::BLEND);
-            
+            gl::Enable(gl::DEPTH_TEST);
+
             gl::UseProgram(self.shader);
             gl::BindVertexArray(self.vao);
             gl::BindTexture(gl::TEXTURE_2D, self.tex);
@@ -194,14 +201,14 @@ impl SpriteRenderer {
             
             // Set uniforms
                 // view_projection
-            let projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
+            let projection = glm::ortho(0.0, winx, 0.0, winy, -25.0, 25.0);
             let view: Mat4 = glm::translation(&Vec3::new(-cam.0, -cam.1, -cam.2));
             let view_projection = projection * view;
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());
                 
                 // sheet_width
-            gl::Uniform1i(self.uniform_locations[1], 256);
+            gl::Uniform1i(self.uniform_locations[1], 250);
                 // sheet_tile_w
             gl::Uniform1i(self.uniform_locations[2], 10);
 

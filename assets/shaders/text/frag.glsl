@@ -6,7 +6,7 @@
  * and output the (tinted) texture.
  */
 #version 410 core
-out vec4 FragColor;
+out vec4 out_color;
 
 uniform sampler2D tex_bitmap_font;
 
@@ -17,7 +17,10 @@ in GS_OUT {
 
 void main() {
     // Build the frag color as the (texture + tint) * alpha
-    FragColor = (texture(tex_bitmap_font, gs_out.tex_coord)
+    out_color = (texture(tex_bitmap_font, gs_out.tex_coord)
         + vec4(gs_out.tint.rgb, 0.0))
         * vec4(1.0, 1.0, 1.0, gs_out.tint.a);
+    if (out_color.a < 0.01) {
+        discard;
+    }
 }

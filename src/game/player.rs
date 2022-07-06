@@ -62,14 +62,7 @@ impl PlayerController {
         
         let player = &self.player;
         let move_dir = nalgebra_glm::vec2(self.move_vec.0, self.move_vec.1);
-        let mut move_vec = move_dir;
         let mut vel = nalgebra_glm::vec2(player_vel.x, player_vel.y);
-        
-        let accel_frac = (
-            (player.max_speed * player.accel) as f64 * dt
-        ) as f32;
-
-        move_vec += accel_frac * move_dir;
 
         // Handle decceleration
         let mut deccel_amt = (-vel * player.deccel) * (dt as f32);
@@ -85,11 +78,16 @@ impl PlayerController {
                 deccel_amt.y = 0.0;
             }
         }
-        
         vel += deccel_amt;
+
+        // Handle player controlled acceleration
+        let accel_frac = (
+            (player.max_speed * player.accel) as f64 * dt
+        ) as f32;
+        let move_vec = accel_frac * move_dir;
+        
         vel += move_vec;
 
-       
         if vel.magnitude() > player.max_speed {
             vel = vel.normalize() * player.max_speed;
         }
@@ -99,12 +97,6 @@ impl PlayerController {
         
         player_vel.x = vel.x;
         player_vel.y = vel.y;
-    
-        let positions = world.read_component::<component::Position>();
-        let player_pos = positions.get(self.player.entity).unwrap();
-        let mut view = world.write_resource::<resource::View>();
-        let window = world.read_resource::<resource::WindowSize>();
-        *view = resource::View(player_pos.x - window.0/2.0, player_pos.y - window.1/2.0, player_pos.z);
     }   
 
     pub fn set_move_input(&mut self, direction: MoveDir, pressed: bool, world: &World) {

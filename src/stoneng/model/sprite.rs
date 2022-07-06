@@ -29,7 +29,7 @@ pub struct Sprite {
     pub rotation:   f32,
 
     /// The position of the sprite in the atlas
-    pub sprite_id:  u16,
+    pub sprite_id:  u32,
     /// The dimension of the sprite measured in tiles.
     ///
     /// This is NOT the scale of the sprite, rather how many tiles in the atlas
@@ -46,7 +46,7 @@ pub struct Sprite {
 impl Sprite {
     pub fn new(pos: Vec3, color: Vec4, scale: Vec2,
                 rotation: f32, dims: (u8, u8),
-                sprite_id: u16) 
+                sprite_id: u32) 
                 -> Self {
         Self {
             pos, color, scale, rotation, sprite_id,

@@ -227,9 +227,11 @@ impl TextRenderer {
 
         unsafe {
             // Setup OpenGL state
-            gl::Enable(gl::DEPTH_TEST);
             gl::Enable(gl::BLEND);
-        
+            gl::Enable(gl::DEPTH_TEST);
+            gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
+            gl::BlendEquation(gl::FUNC_ADD);
+ 
             gl::UseProgram(self.shader);
             gl::BindVertexArray(self.vao);
             gl::BindTexture(gl::TEXTURE_2D, self.tex);
@@ -239,7 +241,7 @@ impl TextRenderer {
 
             // Uniforms
             let view: glm::Mat4 = glm::translation(&glm::Vec3::new(-cam.0, -cam.1, -cam.2));
-            let projection = glm::ortho(0.0, winx, 0.0, winy, -1.0, 1.0);
+            let projection = glm::ortho(0.0, winx, 0.0, winy, -25.0, 25.0);
             let view_projection = projection * view;
             gl::UniformMatrix4fv(self.uniform_locations[0], 1, gl::FALSE, 
                                  view_projection.as_ptr());

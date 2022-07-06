@@ -11,5 +11,5 @@ out VS_OUT {
 
 void main() {
     vs_out.intensity = intensity/px_scale;
-    gl_Position = vec4(pos/px_scale, 0.1, 1.0);
+    gl_Position = vec4(pos/px_scale, 0.0, 1.0);
 }

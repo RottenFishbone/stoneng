@@ -123,7 +123,7 @@ impl SpriteSheet {
 #[derive(Deserialize, Debug, Copy, Clone)]
 pub struct AnimationSchema {
     /// The position of the sprite animation's root tile.
-    pub root:           u16,
+    pub root:           u32,
     
     /// The number of unique tiles in the sprite's animation
     #[serde(default)]
@@ -151,7 +151,7 @@ pub struct AnimationSchema {
 #[derive(Deserialize, Debug, Clone)]
 pub struct SpriteSchema {
     /// The bottom left SINGLE tile of the sprite
-    pub root:       u16,
+    pub root:       u32,
 
     /// Variants of the sprite, e.g. Brick, Mossy brick, Cracked Brick..
     ///

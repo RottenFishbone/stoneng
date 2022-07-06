@@ -21,7 +21,7 @@ pub struct RenderLight {
 
 #[derive(Default, Debug)]
 pub struct LightRenderer {
-    initialized:    bool,
+    initialized:        bool,
     pub dithered:       bool, // TODO implement disabling dithering
     pub dither_scale:   f32,
     
@@ -173,14 +173,15 @@ impl LightRenderer {
         let (winx, winy) = window_size;
         let (s_winx, s_winy) = (window_size.0 / self.dither_scale, 
                                 window_size.1 / self.dither_scale);
-        let scaled_projection = glm::ortho(0.0, s_winx, 0.0, s_winy, -1.0, 1.0);
+
+        let scaled_projection = glm::ortho(0.0, s_winx, 0.0, s_winy, -25.0, 25.0);
         let mut view_mat: glm::Mat4 = glm::identity();
         view_mat = glm::translate(&view_mat, &glm::vec3(-cam.0, -cam.1, -cam.2));
 
         // ============== Render lightmap to framebuffer =============
         unsafe {
             gl::Enable(gl::BLEND);
-            gl::Disable(gl::DEPTH_TEST);
+            gl::Enable(gl::DEPTH_TEST);
             
             gl::UseProgram(self.shaders[0]);
             gl::BindVertexArray(self.vaos[0]);
@@ -227,14 +228,15 @@ impl LightRenderer {
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.fbo);
             gl::DrawArrays(gl::POINTS, 0, lights.len() as i32);
             // Reset the blend function to normal
-            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-            gl::BlendEquation(gl::FUNC_ADD); 
+            gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::ONE, gl::ONE);
+            gl::BlendEquation(gl::FUNC_ADD);
+
             
             // Revert to using the screen's framebuffer
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
             
             // ========= Render the shadow mask =============
-            // This renders the lightmap onto a quad, run through
+            // This renders the lightmap on a quad, run through
             // a frag shader that discards specific fragments.
             // The fragments to discard are selected using bayesian
             // dithering.

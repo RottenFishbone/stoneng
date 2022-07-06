@@ -1,5 +1,5 @@
 SpriteSheet(
-    sheet_width: 256,
+    sheet_width: 250,
     tile_width: 10,
     sprites: {
         "human-unarmed": (
@@ -48,6 +48,10 @@ SpriteSheet(
                     frame_time: 0.1,
                 ),
             }
+        ),
+
+        "crosshair": (
+            root: 552
         )
     }
 )

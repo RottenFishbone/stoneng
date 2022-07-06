@@ -98,7 +98,9 @@ pub fn start<F, G>(config: Config, game: F) where
     
     init_gl();
     game.init();
-
+    
+    ctx.window().set_cursor_visible(false);
+    
     let mut last_frame = Instant::now();
     let modifiers = 0;
     el.run(move |event, _, control_flow| {
