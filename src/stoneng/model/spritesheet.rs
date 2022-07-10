@@ -143,6 +143,14 @@ pub struct AnimationSchema {
     #[serde(default)]
     pub frame_time:     f32,
 }
+impl PartialEq for AnimationSchema {
+    fn eq(&self, other: &Self) -> bool {
+        self.root == other.root && 
+        self.frames == other.frames &&
+        self.loops == other.loops &&
+        self.reverses == other.reverses
+    }
+}
 
 /// A description of a specific sprite.
 ///
