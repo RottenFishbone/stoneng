@@ -1,10 +1,8 @@
 #![allow(unused_variables, unused_imports, dead_code)]
-mod player;
-
 use std::rc::Rc;
 use std::collections::HashMap;
 use glutin::event::ElementState;
-use nalgebra_glm::{Vec2, Vec3, Vec4};
+use nalgebra_glm::{Vec2, Vec3, Vec4, vec2};
 
 use specs::{Builder, World, WorldExt, Entity, RunNow, DispatcherBuilder, Dispatcher};
 use stoneng::ecs::component::Scale;
@@ -17,10 +15,21 @@ use stoneng::event::{KeyEvent, KeyCode};
 use stoneng::{
     self, 
     model::spritesheet::SpriteSheet,
+    controller::player,
     event,
 };
 
-use crate::game::player::*;
+mod animation;
+
+
+macro_rules! unwrap_or_return {
+    ($e: expr) => {
+        match $e {
+            Some(v) => v,
+            None => return,
+        }
+    }
+}
 
 pub struct RustyLantern<'a> {
     spritesheet:        SpriteSheet,
@@ -30,7 +39,7 @@ pub struct RustyLantern<'a> {
 
     cursor:             Option<Entity>,
     cursor_pos:         (f64, f64),
-    player:             Option<PlayerController>,
+    player_contr:             Option<player::PlayerController>,
 }
 
 impl<'a> RustyLantern<'a> {
@@ -43,7 +52,7 @@ impl<'a> RustyLantern<'a> {
 
             cursor: None,
             cursor_pos: (0.0, 0.0),
-            player: None,
+            player_contr: None,
         }
     }
 }
@@ -58,7 +67,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         world.insert(resource::View(0.0 ,0.0, 0.0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(system::movement::MovementSys, "move_sys", &[])
+            .with(system::movement::VelocitySys, "velocity", &[])
             .with(system::sprite::StaticSpriteSys, "static_sprite", &[])
             .with(system::sprite::AnimSpriteSys, "anim_sprite", &["static_sprite"])
             .with_thread_local(system::RenderSys::default())
@@ -80,7 +89,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
         pos.x = 100.0;
         pos.y = 100.0;
-        let player_anim = tile.animations.get("walk-side"); 
+        let player_anim = tile.animations.get("idle"); 
         let player_entity = world.create_entity()
                 .with(pos)
                 .with(scale)
@@ -94,7 +103,12 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 })
                 .build();
 
-        self.player = Some(PlayerController::from(player_entity));
+        self.player_contr = Some(
+            player::PlayerController::new(
+                player_entity, 
+                player::MovementType::Instant(250.0)
+                )
+            );
 
         let cursor_sprite = self.spritesheet.sprites.get("crosshair")
                 .expect(r#""crosshair" sprite could not be found"#)
@@ -116,29 +130,71 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
     }
 
     fn tick(&mut self, dt: f64){
-        if let Some(world) = &mut self.world {
-            world.maintain();
+        // Unwrap and maintain the world first
+        let world = unwrap_or_return!(&mut self.world);
+        world.maintain();
+        // Read world resources
+            // view
+        let view = world.read_resource::<resource::View>();
+        let (view_x,view_y,view_z) = (view.0, view.1, view.2);
+            // dt
+        let mut dt_res = world.write_resource::<resource::DeltaTime>();
+        *dt_res = resource::DeltaTime(dt);
+            // windowsize
+        let win = world.read_resource::<resource::WindowSize>();
+        let (win_x, win_y) = (win.0, win.1);
+
+        // Unwrap relevant entities       
+        let player_contr = unwrap_or_return!(&mut self.player_contr);
+        let cursor = unwrap_or_return!(&mut self.cursor);
+
+        let mut positions = world.write_storage::<component::Position>();
+
+        // Update player
+        player_contr.tick(dt, world);
+        
+        let cursor_vec: Vec2; 
+        {
+            // Update cursor
+            let mut cursor_pos = positions.get_mut(*cursor).unwrap();
+            cursor_pos.x = self.cursor_pos.0 as f32 + view_x;
+            cursor_pos.y = win_y - self.cursor_pos.1 as f32 + view_y;
+            cursor_vec = vec2(cursor_pos.x, cursor_pos.y);
         }
+        
+        // Compute the aim direction as the direction from player to cursor
+        let player_pos = positions.get(player_contr.player).unwrap();
+        let player_vec = vec2(player_pos.x, player_pos.y);
+        let aim_dir = (cursor_vec-player_vec).normalize();
+        
+        // Determine walking/idle
+        let vels = world.read_component::<component::Velocity>();
+        let player_vel = unwrap_or_return!(vels.get(player_contr.player));
+        let player_speed = vec2(player_vel.x, player_vel.y).norm();
+        let player_anim_state = if player_speed > 10.0 {
+                animation::PlayerState::Walking
+            } else {
+                animation::PlayerState::Idle
+            };
+        // Build the required animation name based on movement/direction
+        let anim_name: String = animation::PlayerAnim {
+            state: player_anim_state,
+            direction: animation::PlayerDirection::from(&aim_dir),
+        }.into();
 
-        if let Some(world) = &mut self.world {
-            let mut dt_res = world.write_resource::<resource::DeltaTime>();
-            *dt_res = resource::DeltaTime(dt);
-            
-            if let Some(player) = &mut self.player {
-                player.tick(dt, world);
-            }
-    
-            if let Some(cursor) = self.cursor {
-                let view = world.read_resource::<resource::View>();
-                let (view_x,view_y,view_z) = (view.0, view.1, view.2);
-                let win = world.read_resource::<resource::WindowSize>();
-                let (win_x, win_y) = (win.0, win.1);
-
-                let mut positions = world.write_storage::<component::Position>();
-                let mut cursor_pos = positions.get_mut(cursor).unwrap();
-                cursor_pos.x = self.cursor_pos.0 as f32 + view_x;
-                cursor_pos.y = win_y - self.cursor_pos.1 as f32 + view_y;
-            }
+        // Load animation on player entity
+        system::sprite::AnimSpriteSys::entity_to_anim(
+            &player_contr.player, 
+            &anim_name[..],
+            world
+        ).unwrap();
+        
+        // Flip the player sprite as needed
+        let mut scales = world.write_component::<component::Scale>();
+        let player_scale = unwrap_or_return!(scales.get_mut(player_contr.player));
+        
+        if player_scale.x < 0.0 && aim_dir.x > 0.0 || player_scale.x > 0.0 && aim_dir.x < 0.0 {
+            player_scale.x *= -1.0
         }
     }
 
@@ -154,15 +210,8 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
     }
 
     fn key_input(&mut self, event: event::KeyEvent){
-        let world = match &self.world {
-            Some(world) => world,
-            None => return,
-        };
-        let player = match &mut self.player {
-            Some(player) => player,
-            None => return,
-        };
-
+        let world = unwrap_or_return!(&mut self.world);
+        let player = unwrap_or_return!(&mut self.player_contr);
 
         let state = match event.state {
             ElementState::Pressed => true,
@@ -171,16 +220,15 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
         if let Some(key) = event.key {
             let dir = match key {
-                KeyCode::D => Some(MoveDir::Right),
-                KeyCode::A => Some(MoveDir::Left),
-                KeyCode::W => Some(MoveDir::Up),
-                KeyCode::S => Some(MoveDir::Down),
+                KeyCode::D => Some(player::MovementDirection::Right),
+                KeyCode::A => Some(player::MovementDirection::Left),
+                KeyCode::W => Some(player::MovementDirection::Up),
+                KeyCode::S => Some(player::MovementDirection::Down),
                 _ => None,
             };
         
             if let Some(dir) = dir {
-                player.set_move_input(dir, state, world);
-                return;
+                player.update_move_input(dir, state, world, None);
             }
             
             if state {

@@ -1,6 +1,8 @@
 use specs::{ReadStorage, WriteStorage, System, Join, Read, SystemData};
 use specs::prelude::*;
 use std::sync::Arc;
+use crate::ecs::component;
+use crate::error::EngineError;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
     ecs::resource::{DeltaTime, WindowSize, View},
@@ -28,6 +30,38 @@ impl<'a> System<'a> for StaticSpriteSys {
 #[derive(Default)]
 pub struct AnimSpriteSys;
 impl AnimSpriteSys {
+    /// A helper function to allow for easier setting of animations, by name.
+    pub fn entity_to_anim(entity: &Entity, anim_name: &str, world: &World) 
+            -> Result<(), EngineError> {
+        
+        let sprites = world.read_component::<component::Sprite>();
+        let sprite = match sprites.get(*entity) {
+            Some(s) => s,
+            None => return Err(
+                EngineError::AnimationError(
+                    format!("Entity {:?} does not have Sprite component", entity)
+                )    
+            ),
+        };
+
+        let mut anims = world.write_component::<component::Animation>();
+        let anim = match anims.get_mut(*entity) {
+            Some(a) => a,
+            None => return Err(
+                EngineError::AnimationError(
+                    format!("Entity {:?} does not have Animation component", entity)
+                )    
+            ),
+        };
+        
+        let new_anim = component::Animation::from_name(anim_name, sprite);
+        if anim.schema.clone().unwrap() != new_anim.schema.unwrap() {
+            *anim = component::Animation::from_name(anim_name, sprite);
+        }
+
+        Ok(())
+    }
+    
     fn sprite_to_idle(sprite: &mut Sprite, anim: &mut Animation) {
         anim.frame = 0;
         anim.frame_progress = 0.0;
@@ -121,7 +155,8 @@ impl<'a> System<'a> for AnimSpriteSys {
     type SystemData = (WriteStorage<'a, Sprite>,
                        WriteStorage<'a, Animation>,
                        Read<'a, DeltaTime>);
-
+    // TODO allow for providing a string to the animation component and
+    // have the system simply consume it to replace it with an animation
     fn run(&mut self, data: Self::SystemData) {
         let (mut sprites, mut anims, dt) = data;
         let dt = dt.0;

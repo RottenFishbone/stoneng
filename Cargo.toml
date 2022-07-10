@@ -25,4 +25,5 @@ specs = { version ="0.17", features = ["specs-derive", "shred-derive"] }
 serde = { version = "1.0", features = ["derive", "rc"] }
 ron = "0.6.5"
 
+lazy_static = "1.4"
 
