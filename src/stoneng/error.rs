@@ -6,6 +6,7 @@ pub enum EngineError {
     IOError(std::io::Error),
     SheetParseError(ron::error::Error),
     SheetSizeError(String),
+    AnimationError(String),
 }
 
 impl From<ron::error::Error> for EngineError {
