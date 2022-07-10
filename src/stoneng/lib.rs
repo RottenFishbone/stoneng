@@ -7,6 +7,7 @@ pub mod model;
 pub mod event;
 pub mod renderer;
 pub mod ecs;
+pub mod controller;
 
 mod shader;
 mod error;
@@ -131,9 +132,13 @@ pub fn start<F, G>(config: Config, game: F) where
             },
             Event::MainEventsCleared => { 
                 let dt = last_frame.elapsed().as_micros() as f64;
-                game.tick(dt / 1_000_000.0);
-                last_frame = Instant::now();
                 
+                // Frame limiting
+                // TODO make frame limit a parameter
+                if dt < 1_6666.66 { return; }
+                game.tick(dt / 1_000_000.0);
+
+                last_frame = Instant::now();
                 game.render();
 
                 // Call renderers here
