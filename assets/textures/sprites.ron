@@ -57,7 +57,7 @@ SpriteSheet(
         ),
 
         "crosshair": (
-            root: 552
+            root: 376,
         )
     }
 )
