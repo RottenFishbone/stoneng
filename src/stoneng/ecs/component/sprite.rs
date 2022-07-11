@@ -31,23 +31,24 @@ impl Default for Color { fn default() -> Self { Self { r: 1.0, g: 1.0, b: 1.0, a
 #[derive(Debug, Component, Clone)]
 #[storage(VecStorage)]
 pub struct Sprite {
-    pub id:     u32,
-    pub dims:   u8,
-    pub flags:  u8,
+    /// Shifts sprite root by the id amount (used by animation)
+    pub id_offset: i32,
+    /// The sprites definition reference
     pub schema: Arc<SpriteSchema>,
 }
 impl From<Arc<SpriteSchema>> for Sprite {
     fn from(schema: Arc<SpriteSchema>) -> Self {
         Self {
-            id: 0, dims: 0, flags: 0,
-            schema: schema.clone()
+            id_offset: 0,
+            schema: schema.clone(),
         }
     }
 }
 impl From<(&Sprite, &Position, &Scale, &Color)> for RenderSprite {
-    /// Builds a the struct used to render a sprite from it's requisite components
+    /// Builds the struct used to render a sprite from it's components
     fn from(data: (&Sprite, &Position, &Scale, &Color)) -> Self {
         let (spr, p, s, c) = data;
+        let (dim_x, dim_y) = spr.schema.dimensions;
         Self {
             translation: p.clone().into(),
             scale:       s.clone().into(),
@@ -55,9 +56,9 @@ impl From<(&Sprite, &Position, &Scale, &Color)> for RenderSprite {
 
             color:       c.clone().into(),
 
-            sprite_id:      spr.id,
-            sprite_dims:    spr.dims,
-            sprite_flags:   spr.flags,
+            sprite_id:      (spr.schema.root as i32 + spr.id_offset) as u32,
+            sprite_dims:    dim_x | (dim_y << 4),
+            sprite_flags:   0,
             reserved:       0,
         }
     }

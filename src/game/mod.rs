@@ -68,8 +68,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(system::movement::VelocitySys, "velocity", &[])
-            .with(system::sprite::StaticSpriteSys, "static_sprite", &[])
-            .with(system::sprite::AnimSpriteSys, "anim_sprite", &["static_sprite"])
+            .with(system::sprite::AnimSpriteSys, "anim_sprite", &[])
             .with_thread_local(system::RenderSys::default())
             .with_thread_local(system::sprite::SpriteRenderSys::default())
             .with_thread_local(system::light::LightRenderSys::default())

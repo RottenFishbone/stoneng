@@ -1,6 +1,7 @@
 mod transform;
 mod sprite;
 mod physics;
+mod tile;
 
 use specs::{Component, DenseVecStorage};
 use crate::renderer::{

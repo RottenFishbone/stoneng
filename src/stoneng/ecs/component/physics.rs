@@ -7,6 +7,7 @@ pub struct Velocity {
     pub y: f32,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Component, Copy, Clone)]
 #[storage(DenseVecStorage)]
 pub struct DampedMoveTarget {

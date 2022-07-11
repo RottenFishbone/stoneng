@@ -11,26 +11,12 @@ use crate::{
     renderer::light::{RenderLight, LightRenderer},
 };
 
-/// A system to handle non-animated (static) sprites. 
-#[derive(Default)]
-pub struct StaticSpriteSys; 
-impl<'a> System<'a> for StaticSpriteSys {
-    type SystemData = WriteStorage<'a, Sprite>;
-
-    fn run(&mut self, data: Self::SystemData) {
-        let mut sprites = data;
-        for mut s in (&mut sprites).join() {
-            s.id = s.schema.root;
-            let (x, y) = s.schema.dimensions;
-            s.dims = x | (y << 4);
-        }
-    }
-}
-
 #[derive(Default)]
 pub struct AnimSpriteSys;
 impl AnimSpriteSys {
     /// A helper function to allow for easier setting of animations, by name.
+    ///
+    /// Note, this mutates the passed world and relevant components.
     pub fn entity_to_anim(entity: &Entity, anim_name: &str, world: &World) 
             -> Result<(), EngineError> {
         
@@ -87,7 +73,7 @@ impl AnimSpriteSys {
         
         // Prevent overflow
         if frames_to_adv > 255.0 { 
-            s.id = schema.root + (a.frame as u32);
+            s.id_offset = schema.root as i32 + (a.frame as i32);
             return; 
         } 
 
@@ -128,7 +114,7 @@ impl AnimSpriteSys {
                 // Reverse all the frames, if possible
                 if a.frame >= adv_frames {
                     a.frame -= adv_frames;
-                    s.id -= adv_frames as u32;
+                    s.id_offset -= adv_frames as i32;
                     break;
                 }
                 // Not all frames could be reversed
@@ -162,13 +148,13 @@ impl<'a> System<'a> for AnimSpriteSys {
         let dt = dt.0;
 
         for (mut s, mut a) in (&mut sprites, &mut anims).join() {
-            // Advance the Animation data
             Self::advance_animation(&mut s, &mut a, dt); 
-
-            // Apply the animation changes, if it exists
-            match &a.schema {
-                Some(schema) => s.id = schema.root + (a.frame as u32),
-                None => s.id = s.schema.root,
+            
+            // Apply the animation's offset, if it exists
+            s.id_offset = match &a.schema {
+                None => 0,
+                // Calculate the difference between the animation root+frame and the schema root
+                Some(schema) => (schema.root+(a.frame as u32)) as i32 - s.schema.root as i32,
             };
         }
     }
