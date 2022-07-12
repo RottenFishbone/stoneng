@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use glutin::event::ElementState;
 use nalgebra_glm::{Vec2, Vec3, Vec4, vec2};
 
+use rand::Rng;
 use specs::{Builder, World, WorldExt, Entity, RunNow, DispatcherBuilder, Dispatcher};
 use stoneng::ecs::component::Scale;
 use stoneng::ecs::{
@@ -73,12 +74,13 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             .with_thread_local(system::sprite::SpriteRenderSys::default())
             .with_thread_local(system::light::LightRenderSys::default())
             .with_thread_local(system::text::TextRenderSys::default())
+            .with_thread_local(system::sprite::TileRenderSys::default())
             .build();
  
         dispatcher.setup(&mut world);
         let tile = self.spritesheet.sprites.get("human-unarmed").unwrap().clone();
         let mut pos = component::Position { x: 32.0, y: 32.0, z: -5.0 };
-        let scale = component::Scale { x: 6.0, y: 6.0 };
+        let scale = component::Scale { x: 5.0, y: 5.0 };
         world.create_entity()
             .with(pos.clone())
             .with(scale.clone())
@@ -95,7 +97,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .with(component::Color::default())
                 .with(component::Sprite::from(tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight { intensity: 250.0 })
+                .with(component::PointLight { intensity: 400.0 })
                 .with(component::Velocity { x: 0.0, y: 0.0 })
                 .with(component::Text{ 
                     content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
@@ -121,6 +123,26 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .with(component::Color::default())
                 .build()
         );
+        
+        let grass_sprite = self.spritesheet.sprites.get("grass").unwrap().clone();
+        let mut rng = rand::thread_rng();
+        for i in -100..100 {
+            for j in -100..100 {
+                let var;
+                if rng.gen_bool(0.1) {
+                    var = rng.gen_range(1..8);
+                } else {
+                    var = 0;
+                }
+                world.create_entity()
+                    .with(component::Tile { pos: (i,j) })
+                    .with(component::Floor { 
+                        schema: grass_sprite.variants.get(&var.to_string()[..]).unwrap().clone()
+                    })
+                    .with(component::Color::default())
+                    .build();
+            }
+        }
         
         world.maintain();
 

@@ -13,12 +13,8 @@ use glm::{Vec2, Vec3, Vec4, Mat4};
 use gl::types::*;
 
 /// An individual sprite model directly used for rendering. 
-///
-/// This is somewhat incompatible with the basic model of ECS as it requires multiple
-/// components be combined into a single data structure before rendering. That said, 
-/// it is trivial to build from each of its components. 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RenderSprite {
     pub translation:    (f32, f32, f32),
     pub scale:          (f32, f32),

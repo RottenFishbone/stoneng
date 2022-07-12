@@ -58,6 +58,25 @@ SpriteSheet(
 
         "crosshair": (
             root: 376,
-        )
+        ),
+
+        "grass": (
+            root: 508,
+            variants: {
+                "0": ( root: 508 ),
+                "1": ( root: 509 ),
+                "2": ( root: 510 ),
+                "3": ( root: 533 ),
+                "4": ( root: 534 ),
+                "5": ( root: 535 ),
+                "6": ( root: 558 ),
+                "7": ( root: 559 ),
+                "8": ( root: 560 ),
+                "dirt-tl":      ( root: 504 ),
+                "dirt-tr":      ( root: 505 ),
+                "dirt-trdl":    ( root: 506 ),
+                "dirt-trl":     ( root: 507 ),
+            }
+        ), 
     }
 )

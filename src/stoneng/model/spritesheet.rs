@@ -159,29 +159,20 @@ impl PartialEq for AnimationSchema {
 #[derive(Deserialize, Debug, Clone)]
 pub struct SpriteSchema {
     /// The bottom left SINGLE tile of the sprite
-    pub root:       u32,
+    pub root:           u32,
 
     /// Variants of the sprite, e.g. Brick, Mossy brick, Cracked Brick..
     ///
     /// At the moment these aren't compatible with animations.
     #[serde(default)]
-    pub variants:   u16,
+    pub variants:       HashMap<String, Arc<SpriteSchema>>,
     
     /// How many tiles in each direction the sprite uses. The origin is the
     /// bottom left tile.
     #[serde(default)]
-    pub dimensions:       (u8, u8),
+    pub dimensions:     (u8, u8),
     
     /// A map of animation schema that the sprite can use.
     #[serde(default)]
     pub animations:      HashMap<String, Arc<AnimationSchema>>,
 }
-impl SpriteSchema {
-    pub fn idle_anim(&self) -> Option<Arc<AnimationSchema>> {
-        match self.animations.get("idle") {
-            Some(idle) => Some(idle.clone()),
-            None => None,
-        }
-    }
-}
-

@@ -6,7 +6,7 @@ use crate::error::EngineError;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
     ecs::resource::{DeltaTime, WindowSize, View},
-    ecs::component::{Color, Sprite, Position, Scale, Animation},
+    ecs::component::{Color, Sprite, Position, Scale, Animation, tile::*},
     renderer::sprite::{RenderSprite, SpriteRenderer},
     renderer::light::{RenderLight, LightRenderer},
 };
@@ -194,3 +194,55 @@ impl<'a> System<'a> for SpriteRenderSys {
     }
 }
 
+//TODO join renderers into a common resource (potentially using the resource system?)
+pub struct TileRenderSys {
+    renderer: SpriteRenderer,
+    scale:  (f32, f32),
+}
+impl Default for TileRenderSys {
+    fn default() -> Self {
+        Self {
+            renderer: SpriteRenderer::default(),
+            scale: (5.0, 5.0),
+        }
+    }
+}
+impl<'a> System<'a> for TileRenderSys {
+    type SystemData = (ReadStorage<'a, Tile>,
+                       ReadStorage<'a, Floor>,
+                       ReadStorage<'a, Wall>,
+                       ReadStorage<'a, Color>,
+                       Read<'a, WindowSize>,
+                       Read<'a, View>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        // Unpack system data
+        let (tiles, floors, walls, colors, window, view) = data;
+        let window = (window.0, window.1);
+        let view = (view.0, view.1, view.2);
+        let scale = self.scale.clone();
+        let sprites: Vec<RenderSprite> = 
+            (&tiles, &floors, &colors).join()
+                .map(|data| {
+                    let (tile, floor, color) = data;
+                    RenderSprite::from((tile, color, floor.schema.clone(), scale, -10.1))
+                })
+                .collect();
+        self.renderer.render(&sprites, window, view);
+
+        let sprites: Vec<RenderSprite> = 
+            (&tiles, &walls, &colors).join()
+                .map(|data| {
+                    let (tile, wall, color) = data;
+                    RenderSprite::from((tile, color, wall.schema.clone(), scale, -10.0))
+                })
+                .collect();
+        self.renderer.render(&sprites, window, view);
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+        self.renderer = SpriteRenderer::new();
+        self.renderer.init(include_bytes!("../../../../assets/textures/sprites.png")).unwrap();
+    }
+}

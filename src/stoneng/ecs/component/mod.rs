@@ -1,7 +1,7 @@
-mod transform;
-mod sprite;
-mod physics;
-mod tile;
+pub mod transform;
+pub mod sprite;
+pub mod physics;
+pub mod tile;
 
 use specs::{Component, DenseVecStorage};
 use crate::renderer::{
@@ -18,6 +18,11 @@ pub use sprite::Sprite as Sprite;
 pub use sprite::Animation as Animation;
 
 pub use physics::Velocity as Velocity;
+
+pub use tile::Tile as Tile;
+pub use tile::Floor as Floor;
+pub use tile::Wall as Wall;
+
 
 #[derive(Debug, Component, Clone, Copy)]
 #[storage(DenseVecStorage)]
