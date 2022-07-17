@@ -1,10 +1,9 @@
-# rustylantern (working title)
+# StonEng
 
-A standalone 2d game engine (StonEng) and a currently untitled game.
-The goal of the project is to fully implement a reusable game engine within StoneEng library
-as well as develop an open-source game for eventual release.
+A rudimentary 2d game engine using OpenGL and Rust.
+As it stands, StonEng supports rendering, context creation, input, basic ECS provisions and spritesheet loading.
 
-As it stands, StoneEng functions as the game's renderer, driver and ECS backend (through 'Specs').
+The primary purpose of this project is simply to increase my knowledge in Rust and OpenGL.
 
 ### Example
 ![stoneng_demo](https://user-images.githubusercontent.com/2926677/177432778-a704429f-dac4-47ab-8797-3cee96cae1ae.gif)
