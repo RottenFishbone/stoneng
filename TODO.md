@@ -1,12 +1,16 @@
 # Lighting
 - LoS shadow casting
 - Non-dithered setting
+- Coloured lighting
 
 # Sprites
 - Rotation
+- Introduce flipping in animations (cutting sprites in half in many cases)
 - Icons/UI sprites
 
 # ECS
+- Walls/Floors/Decals
+- Efficient Tile System (must support SS culling and efficient lookups)
 
 # Text
 - Convert to more efficient system (that doesn't rebuild RenderChar)

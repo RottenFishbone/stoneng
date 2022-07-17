@@ -1,14 +1,14 @@
 [package]
-name = "rustylantern"
-version = "0.1.0"
-edition = "2018"
+name = "stoneng"
+version = "0.0.1"
+edition = "2021"
 
 [lib]
 name = "stoneng"
 path = "src/stoneng/lib.rs"
 
 [[bin]]
-name = "rustylantern"
+name = "stoneng-bin"
 path = "src/main.rs"
 
 [dependencies]

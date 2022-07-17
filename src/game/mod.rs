@@ -22,7 +22,7 @@ use stoneng::{
 
 mod animation;
 
-
+// A quick macro to return from a function on a failed Option unwrap
 macro_rules! unwrap_or_return {
     ($e: expr) => {
         match $e {
@@ -72,13 +72,16 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             .with(system::sprite::AnimSpriteSys, "anim_sprite", &[])
             .with_thread_local(system::RenderSys::default())
             .with_thread_local(system::sprite::SpriteRenderSys::default())
-            .with_thread_local(system::light::LightRenderSys::default())
             .with_thread_local(system::text::TextRenderSys::default())
             .with_thread_local(system::sprite::TileRenderSys::default())
+            .with_thread_local(system::light::LightRenderSys::default())
             .build();
  
         dispatcher.setup(&mut world);
-        let tile = self.spritesheet.sprites.get("human-unarmed").unwrap().clone();
+        let tile = self.spritesheet.sprites
+                .get("human").unwrap()
+                .variants.get("unarmed").unwrap()
+                .clone();
         let mut pos = component::Position { x: 32.0, y: 32.0, z: -5.0 };
         let scale = component::Scale { x: 5.0, y: 5.0 };
         world.create_entity()

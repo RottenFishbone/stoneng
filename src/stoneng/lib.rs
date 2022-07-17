@@ -78,7 +78,6 @@ impl Config {
 pub fn start<F, G>(config: Config, game: F) where
     G: 'static + EngineCore,
     F: 'static + FnOnce() -> G {
-    
     let mut game = game();
     let window_size = PhysicalSize::new(config.dimensions.0, config.dimensions.1);
     // Spawn the event loop thread and build the context
