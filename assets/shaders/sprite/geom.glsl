@@ -39,7 +39,7 @@ void main() {
     
     // Calculate a unit uv square using (0, 1) as top left.
     //
-    //  y=1 _ _ _ x,y=1
+    //  y=1 ______x,y=1
     //     |_|_|_|
     //     |_|_|_|
     //     |_|_|_|
