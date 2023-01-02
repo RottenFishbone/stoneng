@@ -20,6 +20,7 @@ stb_image = "0.2.3"
 
 # Data Structure
 specs = { version ="0.17", features = ["specs-derive", "shred-derive"] }
+shrev = "*" # Take specs' preferred version
 
 # (de)serializing
 serde = { version = "1.0", features = ["derive", "rc"] }

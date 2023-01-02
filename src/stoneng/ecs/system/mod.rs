@@ -2,6 +2,8 @@ pub mod sprite;
 pub mod light;
 pub mod text;
 pub mod movement;
+pub mod collision;
+
 
 use specs::prelude::*;
 

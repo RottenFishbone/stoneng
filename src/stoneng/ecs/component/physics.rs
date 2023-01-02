@@ -1,5 +1,6 @@
 use specs::{Component, DenseVecStorage};
 
+#[allow(dead_code)]
 #[derive(Debug, Component, Clone)]
 #[storage(DenseVecStorage)]
 pub struct Velocity {

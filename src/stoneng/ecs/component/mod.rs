@@ -2,6 +2,7 @@ pub mod transform;
 pub mod sprite;
 pub mod physics;
 pub mod tile;
+pub mod collision;
 
 use specs::{Component, DenseVecStorage};
 use crate::renderer::{
@@ -23,6 +24,8 @@ pub use tile::Tile as Tile;
 pub use tile::Floor as Floor;
 pub use tile::Wall as Wall;
 
+pub use collision::Collider as Collider;
+
 
 #[derive(Debug, Component, Clone, Copy)]
 #[storage(DenseVecStorage)]
@@ -38,7 +41,6 @@ impl From<(&Position, &PointLight)> for RenderLight {
         }
     }
 }
-
 
 #[derive(Debug, Component, Clone)]
 #[storage(DenseVecStorage)]

@@ -28,6 +28,12 @@
 - Ideally a system with a state of which camera entity to use
 - Allow for different camera modes (aim at cursor, look-ahead, soft follow, hard follow etc)
 
+# Collisions
+- Implement nphysics to allow for better general collisions (and maybe physics xd)
+- Quadtrees (instead of N^2 test)
+- Basic movement collision built in to engine (leaving collision event accessible for secondary
+  systems defined by dev)
+
 # UI
 - Implement
 

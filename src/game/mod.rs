@@ -37,10 +37,11 @@ pub struct RustyLantern<'a> {
     world:              Option<World>,
     dispatcher:         Option<Dispatcher<'a, 'a>>,
     time:               std::time::Instant,
+    collision_reader:   Option<shrev::ReaderId<resource::CollisionEvent>>,
 
     cursor:             Option<Entity>,
     cursor_pos:         (f64, f64),
-    player_contr:             Option<player::PlayerController>,
+    player_contr:       Option<player::PlayerController>,
 }
 
 impl<'a> RustyLantern<'a> {
@@ -50,6 +51,7 @@ impl<'a> RustyLantern<'a> {
             world: None,
             dispatcher: None,
             time: std::time::Instant::now(),
+            collision_reader: None,
 
             cursor: None,
             cursor_pos: (0.0, 0.0),
@@ -66,10 +68,16 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         world.insert(resource::DeltaTime(0.0));
         world.insert(resource::WindowSize(800.0, 600.0));
         world.insert(resource::View(0.0 ,0.0, 0.0));
+        let mut collision_events = resource::CollisionEvents::new();
+        self.collision_reader = Some(collision_events.register_reader());
+        world.insert(collision_events);
 
+        // Creates the system dispatcher, the order here is important
         let mut dispatcher = DispatcherBuilder::new()
+            .with(system::collision::CollisionSys, "collision", &[])
             .with(system::movement::VelocitySys, "velocity", &[])
             .with(system::sprite::AnimSpriteSys, "anim_sprite", &[])
+            // thread_local must be used with OpenGL systems as OpenGL only runs on main thread
             .with_thread_local(system::RenderSys::default())
             .with_thread_local(system::sprite::SpriteRenderSys::default())
             .with_thread_local(system::text::TextRenderSys::default())
@@ -102,6 +110,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .with(component::Animation::from(player_anim))
                 .with(component::PointLight { intensity: 400.0 })
                 .with(component::Velocity { x: 0.0, y: 0.0 })
+                .with(component::Collider::new(25.0, 25.0))
                 .with(component::Text{ 
                     content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
                 })
@@ -122,6 +131,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             world.create_entity()
                 .with(component::Position { x:0.0, y:0.0, z:1.0 })
                 .with(component::Scale { x: 3.0, y: 3.0 })
+                .with(component::Collider::new(25.0, 25.0))
                 .with(component::Sprite::from(cursor_sprite))
                 .with(component::Color::default())
                 .build()
@@ -167,6 +177,10 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
             // windowsize
         let win = world.read_resource::<resource::WindowSize>();
         let (win_x, win_y) = (win.0, win.1);
+            // collision_events
+        let collisions = world.read_resource::<resource::CollisionEvents>();
+        let collision_events = collisions.read(&mut self.collision_reader.as_mut().unwrap());
+        
 
         // Unwrap relevant entities       
         let player_contr = unwrap_or_return!(&mut self.player_contr);
@@ -216,10 +230,22 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         // Flip the player sprite as needed
         let mut scales = world.write_component::<component::Scale>();
         let player_scale = unwrap_or_return!(scales.get_mut(player_contr.player));
-        
+
         if player_scale.x < 0.0 && aim_dir.x > 0.0 || player_scale.x > 0.0 && aim_dir.x < 0.0 {
             player_scale.x *= -1.0
         }
+        
+        
+        let mut texts = world.write_component::<component::Text>();
+        let player_name = unwrap_or_return!(texts.get_mut(player_contr.player));
+        player_name.content = "Bobert".into();
+
+        for collision in collision_events {
+            if collision.collider_a == player_contr.player {
+                player_name.content = "Boop".into();
+            }
+        }
+
     }
 
     fn render(&mut self) {

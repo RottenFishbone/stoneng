@@ -30,8 +30,8 @@ impl From<(
         &crate::ecs::component::Color, 
         Arc<SpriteSchema>, 
         (f32, f32), 
-        f32
-    )> for RenderSprite {
+        f32)> 
+    for RenderSprite {
     
     /// Convert from a packed set of relevant tile data into a RenderSprite
     ///
