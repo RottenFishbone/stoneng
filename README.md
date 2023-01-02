@@ -6,7 +6,8 @@ As it stands, StonEng supports rendering, context creation, input, basic ECS pro
 The primary purpose of this project is simply to increase my knowledge in Rust and OpenGL.
 
 ### Example
-![stoneng_demo](https://user-images.githubusercontent.com/2926677/177432778-a704429f-dac4-47ab-8797-3cee96cae1ae.gif)
+![stoneng_demo](https://user-images.githubusercontent.com/2926677/210279565-11dd2298-ee49-45e5-ab44-1a806fc74804.gif)
+
 
 ### Major dependencies
 - [Specs](https://github.com/amethyst/specs) for the basis of the Entity-Component-System.
