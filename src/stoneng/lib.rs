@@ -96,7 +96,7 @@ pub fn start<F, G>(config: Config, game: F) where
     
     gl::load_with(|ptr| ctx.context().get_proc_address(ptr) as *const _);
     
-    init_gl();
+    init_gl(&config);
     game.init();
     
     ctx.window().set_cursor_visible(false);
@@ -153,7 +153,7 @@ pub fn start<F, G>(config: Config, game: F) where
 
 }
 
-fn init_gl(){
+fn init_gl(config: &Config){
     unsafe {
         // Enable transparency
         gl::Enable(gl::BLEND);
@@ -167,7 +167,8 @@ fn init_gl(){
         gl::DepthFunc(gl::LEQUAL);
         
         // Set the viewport's dimensions. This should match the window.
-        gl::Viewport( 0, 0, 800, 600);
+        let (width, height) = (config.dimensions.0 as i32, config.dimensions.1 as i32);
+        gl::Viewport( 0, 0, width, height);
 
         gl::PointSize(10.0);
     }
