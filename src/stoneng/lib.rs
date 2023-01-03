@@ -63,6 +63,8 @@ pub struct Config {
     pub title: String,
     pub fullscreen: bool,
     pub resizable: bool,
+
+    pub framecap: u32,
 }
 
 
@@ -73,6 +75,8 @@ impl Config {
             title: "rustylantern".into(),
             fullscreen: false,
             resizable: false,
+
+            framecap: 75,
         }
     }
 }
@@ -104,7 +108,7 @@ pub fn start<F, G>(config: Config, game: F) where
     ctx.window().set_cursor_visible(false);
     
     let mut last_frame = Instant::now();
-    let modifiers = 0;
+    let frametime = 1.0/config.framecap as f64 * 1_000_000.0;
     el.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
@@ -135,8 +139,13 @@ pub fn start<F, G>(config: Config, game: F) where
                 let dt = last_frame.elapsed().as_micros() as f64;
                 
                 // Frame limiting
-                // TODO make frame limit a parameter
-                if dt < 1_6666.66 { return; }
+                if dt < frametime { 
+                    let time_to_tick = ((frametime-dt)*0.95)as u64;
+                    std::thread::sleep(std::time::Duration::from_micros(time_to_tick));
+                    return;
+                }
+
+                // Run game logic (converting time into seconds)
                 game.tick(dt / 1_000_000.0);
 
                 last_frame = Instant::now();
