@@ -32,27 +32,28 @@ pub type EngineError = error::EngineError;
 ///
 /// These functions are used as an API to the engine and serve as the 
 /// basis for interaction with the main loop and rendering.
-/// TODO Create a procedural macro to allow for partial implementation 
 pub trait EngineCore {
-    // Engine Cycle
+        // Engine Cycle
     /// Called once, after context creation, before initial draw. 
-    fn init(&mut self){}
+    fn init(&mut self);
     /// Called once per engine update with the number of seconds since the last draw.
-    fn tick(&mut self, dt: f64){}
+    fn tick(&mut self, dt: f64);
 
-    // Rendering
+        // Rendering
     /// Called when the context is ready for drawing
-    fn render(&mut self) {}
+    fn render(&mut self);
     /// Called after the context has been drawn to and displayed
     fn post_render(&mut self) {}
 
-    // Input
+        // Input
     /// Called on a keyboard input state being changed.
     fn key_input(&mut self, event: KeyEvent){} 
     /// Called when a mouse button has changed state.
     fn mouse_btn(&mut self, event: MouseBtnEvent){}
     /// Called when the cursor moves within the window
     fn cursor_moved(&mut self, x: f64, y: f64) {}
+    
+        // Window
     /// Called on a window resize, the parameters being the new window size.
     fn resized(&mut self, x: u32, y: u32) {} 
 }
@@ -71,7 +72,8 @@ pub struct Config {
     /// The maximum number of frames per seconds, 0 for uncapped.
     pub frame_cap:  u32,
 
-    /// The major and minor version of opengl to use (might need to be upgraded for some shaders)
+    /// The major and minor version of opengl to use 
+    /// Might need to be upgraded from default for some shaders
     pub opengl_version: (u8, u8)
 }
 

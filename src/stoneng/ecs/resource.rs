@@ -1,6 +1,9 @@
 use shrev::EventChannel;
 use specs::Entity;
 
+#[derive(Default, Clone, Debug)]
+pub struct SpritesheetPath(pub String);
+
 #[derive(Default, Clone, Copy, Debug)]
 pub struct DeltaTime(pub f64);
 

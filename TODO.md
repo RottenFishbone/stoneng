@@ -7,6 +7,7 @@
 - Rotation
 - Introduce flipping in animations (cutting sprites in half in many cases)
 - Icons/UI sprites
+- Zooming
 
 # ECS
 - Walls/Floors/Decals

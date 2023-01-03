@@ -1,7 +1,6 @@
 #![allow(unused_variables, unused_imports, dead_code)]
 use std::rc::Rc;
 use std::collections::HashMap;
-use glutin::event::ElementState;
 use nalgebra_glm::{Vec2, Vec3, Vec4, vec2};
 
 use rand::Rng;
@@ -12,7 +11,7 @@ use stoneng::ecs::{
     system,
     component,
 };
-use stoneng::event::{KeyEvent, KeyCode};
+use stoneng::event::{KeyEvent, KeyCode, ElementState};
 use stoneng::{
     self, 
     model::spritesheet::SpriteSheet,
@@ -65,6 +64,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
     fn init(&mut self){
         // Setup ECS
         let mut world = World::new();
+        world.insert(resource::SpritesheetPath(self.spritesheet.get_img_path().into()));
         world.insert(resource::DeltaTime(0.0));
         world.insert(resource::WindowSize(800.0, 600.0));
         world.insert(resource::View(0.0 ,0.0, 0.0));
