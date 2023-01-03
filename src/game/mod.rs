@@ -32,7 +32,7 @@ macro_rules! unwrap_or_return {
     }
 }
 
-pub struct RustyLantern<'a> {
+pub struct GameState<'a> {
     spritesheet:        SpriteSheet,
     world:              Option<World>,
     dispatcher:         Option<Dispatcher<'a, 'a>>,
@@ -44,7 +44,7 @@ pub struct RustyLantern<'a> {
     player_contr:       Option<player::PlayerController>,
 }
 
-impl<'a> RustyLantern<'a> {
+impl<'a> GameState<'a> {
     pub fn new() -> Self {
         Self {
             spritesheet: SpriteSheet::from_layout("assets/textures/sprites.ron".into()).unwrap(),
@@ -61,7 +61,7 @@ impl<'a> RustyLantern<'a> {
 }
 
 
-impl<'a> stoneng::EngineCore for RustyLantern<'a> {
+impl<'a> stoneng::EngineCore for GameState<'a> {
     fn init(&mut self){
         // Setup ECS
         let mut world = World::new();
@@ -102,6 +102,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
         pos.x = 100.0;
         pos.y = 100.0;
         let player_anim = tile.animations.get("idle"); 
+        let player_size = (self.spritesheet.tile_width-2) as f32 * scale.x;
         let player_entity = world.create_entity()
                 .with(pos)
                 .with(scale)
@@ -110,7 +111,7 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .with(component::Animation::from(player_anim))
                 .with(component::PointLight { intensity: 400.0 })
                 .with(component::Velocity { x: 0.0, y: 0.0 })
-                .with(component::Collider::new(25.0, 25.0))
+                .with(component::Collider::new(player_size, player_size))
                 .with(component::Text{ 
                     content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
                 })
@@ -127,20 +128,22 @@ impl<'a> stoneng::EngineCore for RustyLantern<'a> {
                 .expect(r#""crosshair" sprite could not be found"#)
                 .clone();
 
+        let cursor_size = (self.spritesheet.tile_width-1) as f32 * 3.0;
         self.cursor = Some(
             world.create_entity()
                 .with(component::Position { x:0.0, y:0.0, z:1.0 })
                 .with(component::Scale { x: 3.0, y: 3.0 })
-                .with(component::Collider::new(25.0, 25.0))
+                .with(component::Collider::new(cursor_size, cursor_size))
                 .with(component::Sprite::from(cursor_sprite))
                 .with(component::Color::default())
                 .build()
         );
         
+       
         let grass_sprite = self.spritesheet.sprites.get("grass").unwrap().clone();
         let mut rng = rand::thread_rng();
-        for i in -100..100 {
-            for j in -100..100 {
+        for i in -25..25 {
+            for j in -25..25 {
                 let var;
                 if rng.gen_bool(0.1) {
                     var = rng.gen_range(1..8);

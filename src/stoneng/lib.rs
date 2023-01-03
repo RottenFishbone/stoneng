@@ -53,18 +53,26 @@ pub trait EngineCore {
     fn mouse_btn(&mut self, event: MouseBtnEvent){}
     /// Called when the cursor moves within the window
     fn cursor_moved(&mut self, x: f64, y: f64) {}
-
+    /// Called on a window resize, the parameters being the new window size.
     fn resized(&mut self, x: u32, y: u32) {} 
 }
 
 
 pub struct Config {
+    /// Viewport and window dimensions.
     pub dimensions: (u32, u32),
-    pub title: String,
+    /// The title of the window
+    pub title:      String,
+    /// Hide window decorations and use native resolution for window size
     pub fullscreen: bool,
-    pub resizable: bool,
+    /// Is the window resizable (this is not _always_ respected)
+    pub resizable:  bool,
+    
+    /// The maximum number of frames per seconds, 0 for uncapped.
+    pub frame_cap:  u32,
 
-    pub framecap: u32,
+    /// The major and minor version of opengl to use (might need to be upgraded for some shaders)
+    pub opengl_version: (u8, u8)
 }
 
 
@@ -72,11 +80,13 @@ impl Config {
     pub fn default() -> Self {
         Self {
             dimensions: (800, 600),
-            title: "rustylantern".into(),
+            title: "StoneEng".into(),
             fullscreen: false,
             resizable: false,
 
-            framecap: 75,
+            frame_cap: 100,
+
+            opengl_version: (4, 2),
         }
     }
 }
@@ -89,11 +99,11 @@ pub fn start<F, G>(config: Config, game: F) where
     // Spawn the event loop thread and build the context
     let el = EventLoop::new();
     let wb = WindowBuilder::new()
-        .with_title("rustylantern")
+        .with_title(config.title.clone())
         .with_inner_size(window_size)
-        .with_resizable(false);
+        .with_resizable(config.resizable);
     let ctx = glutin::ContextBuilder::new()
-        .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 2)))
+        .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, config.opengl_version))
         .with_gl_profile(glutin::GlProfile::Core)
         .with_vsync(true)
         .build_windowed(wb, &el)
@@ -108,7 +118,10 @@ pub fn start<F, G>(config: Config, game: F) where
     ctx.window().set_cursor_visible(false);
     
     let mut last_frame = Instant::now();
-    let frametime = 1.0/config.framecap as f64 * 1_000_000.0;
+    let frametime = if config.frame_cap > 0 { 
+        1.0/config.frame_cap as f64 * 1_000_000.0 
+    } else { 0.0 };
+
     el.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {

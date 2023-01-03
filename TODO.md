@@ -34,6 +34,9 @@
 - Basic movement collision built in to engine (leaving collision event accessible for secondary
   systems defined by dev)
 
+# Debugging
+- Create a debug renderer for drawing arbitrary rectangles
+
 # UI
 - Implement
 
