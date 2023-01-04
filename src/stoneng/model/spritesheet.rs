@@ -124,7 +124,7 @@ pub enum AnimMode {
     LoopReverse,
     Reverse,
 }
-impl AnimMode { pub fn lowest() -> Self { AnimMode::Once } }
+impl AnimMode { pub fn lowest() -> Self { AnimMode::OncePersist } }
 
 /// A description of a sprite animation.
 ///

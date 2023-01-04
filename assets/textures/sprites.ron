@@ -70,7 +70,7 @@ SpriteSheet(
                         ),
                         "walk-down": (
                             root: 6,
-                            frames: 12,
+                            frames: 6,
                             mode: Loop,
                             frame_time: 0.1,
                         ),
@@ -184,6 +184,7 @@ SpriteSheet(
                     root: 425,
                     frames: 4,
                     frame_time:0.03,
+                    mode: Once,
                 ),
             },
         ),

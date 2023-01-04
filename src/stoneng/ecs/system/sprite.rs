@@ -113,7 +113,6 @@ impl AnimSpriteSys {
                     }
                     // Return to idle
                     else if schema.mode == AnimMode::OncePersist {
-                        Self::sprite_to_idle(s, a);
                         return;
                     }
                     else {
@@ -141,9 +140,9 @@ impl AnimSpriteSys {
                     if loops {
                         a.is_reversing = false;
                     }
-                    // Return to idle
+                    // TODO ReversePersist?
                     else {
-                        Self::sprite_to_idle(s, a);
+                        a.is_done = true;
                         return;
                     }
                 }
@@ -169,7 +168,6 @@ impl<'a> System<'a> for AnimSpriteSys {
             }
 
             Self::advance_animation(&mut s, &mut a, dt); 
-            
             // Apply the animation's offset, if it exists
             s.id_offset = match &a.schema {
                 None => 0,
