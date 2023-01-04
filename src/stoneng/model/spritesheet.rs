@@ -59,12 +59,13 @@ impl SpriteSheet {
     ///             // Note that animations is a map
     ///             animations: {
     ///                 // Each animation is the struct AnimationSchema
+    ///                 // `mode` being:
+    ///                 // Once (self-deletes), OncePersist, Loop, LoopReverse, Reverse 
     ///                 "idle": (
     ///                     root:       3,
     ///                     frames:     3,
     ///                     fps:        5,
-    ///                     loops:    true,
-    ///                     reverses:   true,
+    ///                     mode:       Loop,
     ///                 ),
     ///             }
     ///         )
@@ -115,12 +116,21 @@ impl SpriteSheet {
     pub fn get_img_path(&self) -> &str { &self.path[..] }
 }
 
+#[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq)]
+pub enum AnimMode {
+    Once,
+    OncePersist,
+    Loop,
+    LoopReverse,
+    Reverse,
+}
+impl AnimMode { pub fn lowest() -> Self { AnimMode::Once } }
 
 /// A description of a sprite animation.
 ///
 /// This is used to describe an animation when the renderer is handling
 /// sprite animations.
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct AnimationSchema {
     /// The position of the sprite animation's root tile.
     pub root:           u32,
@@ -129,15 +139,8 @@ pub struct AnimationSchema {
     #[serde(default)]
     pub frames:         u8,
     
-    /// If the animation should loop on completion
-    #[serde(default)]
-    pub loops:          bool,
-    
-    /// If, on the final frame, the animation should play in reverse
-    /// 
-    /// This can be used in conjunction with looping.
-    #[serde(default)]
-    pub reverses:       bool,
+    #[serde(default = "AnimMode::lowest")]
+    pub mode:          AnimMode,
     
     /// How many seconds between each frame 
     #[serde(default)]
@@ -147,8 +150,7 @@ impl PartialEq for AnimationSchema {
     fn eq(&self, other: &Self) -> bool {
         self.root == other.root && 
         self.frames == other.frames &&
-        self.loops == other.loops &&
-        self.reverses == other.reverses
+        self.mode == other.mode
     }
 }
 

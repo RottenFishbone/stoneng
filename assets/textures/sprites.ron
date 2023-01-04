@@ -17,7 +17,7 @@ SpriteSheet(
                         "walk-down": (
                             root: 0,
                             frames: 6,
-                            loops: true,
+                            mode: Loop,
                             frame_time: 0.1,
                         ),
                         "idle-up": (
@@ -26,7 +26,7 @@ SpriteSheet(
                         "walk-up": (
                             root: 25,
                             frames: 6,
-                            loops: true,
+                            mode: Loop,
                             frame_time: 0.1,
                         ),
                         "idle-diag-down": (
@@ -35,7 +35,7 @@ SpriteSheet(
                         "walk-diag-down": (
                             root: 50,
                             frames: 6,
-                            loops: true,
+                            mode: Loop,
                             frame_time: 0.1,
                         ),
                         "idle-diag-up": (
@@ -44,7 +44,7 @@ SpriteSheet(
                         "walk-diag-up": (
                             root: 75,
                             frames: 6,
-                            loops: true,
+                            mode: Loop,
                             frame_time: 0.1,
                         ),
                         "idle-side": (
@@ -53,22 +53,143 @@ SpriteSheet(
                         "walk-side": (
                             root: 100,
                             frames: 6,
-                            loops: true,
+                            mode: Loop,
                             frame_time: 0.1,
                         ),
                     }, // anims
                 ), // unarmed
+
+                "gun": (
+                    root: 8,
+                    animations: {
+                        "idle": (
+                            root: 11,
+                        ),
+                        "idle-down": (
+                            root: 11, 
+                        ),
+                        "walk-down": (
+                            root: 6,
+                            frames: 12,
+                            mode: Loop,
+                            frame_time: 0.1,
+                        ),
+                        "idle-up": (
+                            root: 36,
+                        ),
+                        "walk-up": (
+                            root: 31,
+                            frames: 6,
+                            mode: Loop,
+                            frame_time: 0.1,
+                        ),
+                        "idle-diag-down": (
+                            root: 61,
+                        ),
+                        "walk-diag-down": (
+                            root: 56,
+                            frames: 6,
+                            mode: Loop,
+                            frame_time: 0.1,
+                        ),
+                        "idle-diag-up": (
+                            root: 86,
+                        ),
+                        "walk-diag-up": (
+                            root: 81,
+                            frames: 6,
+                            mode: Loop,
+                            frame_time: 0.1,
+                        ),
+                        "idle-side": (
+                            root: 111,
+                        ),
+                        "walk-side": (
+                            root: 106,
+                            frames: 6,
+                            mode: Loop,
+                            frame_time: 0.1,
+                        ),
+                    }, // anims
+                ), // gun
             }, // variants
         ), // human
-
+        
         "zombie": (
-            root: 8, 
-        ),
+            root: 127,
+            animations: {
+                "idle": (
+                    root: 130,
+                ),
+                "idle-down": (
+                    root: 130, 
+                ),
+                "walk-down": (
+                    root: 125,
+                    frames: 6,
+                    mode: Loop,
+                    frame_time: 0.1,
+                ),
+                "idle-up": (
+                    root: 155,
+                ),
+                "walk-up": (
+                    root: 150,
+                    frames: 6,
+                    mode: Loop,
+                    frame_time: 0.1,
+                ),
+                "idle-diag-down": (
+                    root: 180,
+                ),
+                "walk-diag-down": (
+                    root: 175,
+                    frames: 6,
+                    mode: Loop,
+                    frame_time: 0.1,
+                ),
+                "idle-diag-up": (
+                    root: 205,
+                ),
+                "walk-diag-up": (
+                    root: 200,
+                    frames: 6,
+                    mode: Loop,
+                    frame_time: 0.1,
+                ),
+                "idle-side": (
+                    root: 230,
+                ),
+                "walk-side": (
+                    root: 225,
+                    frames: 6,
+                    mode: Loop,
+                    frame_time: 0.1,
+                ),
+            }, // anims
+        ), // zombie
+                    
 
+        // UI
         "crosshair": (
             root: 376,
         ),
 
+
+        // Particles
+        "muzzle-flash": (
+            root: 425,
+            animations: {
+                "": (
+                    root: 425,
+                    frames: 4,
+                    frame_time:0.03,
+                ),
+            },
+        ),
+        
+        
+        // Tiles
         "grass": (
             root: 508,
             variants: {

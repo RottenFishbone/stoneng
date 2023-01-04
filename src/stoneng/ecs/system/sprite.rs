@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::ecs::component;
 use crate::error::EngineError;
 use crate::{
-    model::spritesheet::{SpriteSheet, AnimationSchema},
+    model::spritesheet::{SpriteSheet, AnimationSchema, AnimMode},
     ecs::resource::{DeltaTime, WindowSize, View, SpritesheetPath},
     ecs::component::{Color, Sprite, Position, Scale, Animation, tile::*},
     renderer::sprite::{RenderSprite, SpriteRenderer},
@@ -69,7 +69,10 @@ impl AnimSpriteSys {
             Some(schema) => schema.clone(),
             None => return,
         };
-        
+
+        let loops = schema.mode == AnimMode::Loop || schema.mode == AnimMode::LoopReverse;
+        let reverses = schema.mode == AnimMode::Reverse || schema.mode == AnimMode::LoopReverse;
+
         // Calculate how many frames need to be played ( as a float )
         a.frame_progress += (dt/(schema.frame_time as f64)) as f32;
 
@@ -102,15 +105,19 @@ impl AnimSpriteSys {
                     a.frame += valid_frames;
                     // Note, there is AT LEAST one frame left now.
 
-                    if schema.reverses { a.is_reversing = true; }
-                    else if schema.loops {
+                    if reverses { a.is_reversing = true; }
+                    else if loops {
                         // Return to the first frame again, costing one frame.
                         adv_frames -= 1;
                         a.frame = 0;
                     }
                     // Return to idle
-                    else {
+                    else if schema.mode == AnimMode::OncePersist {
                         Self::sprite_to_idle(s, a);
+                        return;
+                    }
+                    else {
+                        a.is_done = true;
                         return;
                     }
                 }
@@ -131,7 +138,7 @@ impl AnimSpriteSys {
                     a.frame = 0;
     
                     // Continue back in forward animation
-                    if schema.loops {
+                    if loops {
                         a.is_reversing = false;
                     }
                     // Return to idle
@@ -145,16 +152,22 @@ impl AnimSpriteSys {
     }
 }
 impl<'a> System<'a> for AnimSpriteSys {
-    type SystemData = (WriteStorage<'a, Sprite>,
+    type SystemData = (Entities<'a>,
+                       WriteStorage<'a, Sprite>,
                        WriteStorage<'a, Animation>,
                        Read<'a, DeltaTime>);
     // TODO allow for providing a string to the animation component and
     // have the system simply consume it to replace it with an animation
     fn run(&mut self, data: Self::SystemData) {
-        let (mut sprites, mut anims, dt) = data;
+        let (ents, mut sprites, mut anims, dt) = data;
         let dt = dt.0;
 
-        for (mut s, mut a) in (&mut sprites, &mut anims).join() {
+        for (ent, mut s, mut a) in (&ents, &mut sprites, &mut anims).join() {
+            if a.is_done { 
+                let _ = ents.delete(ent); 
+                continue; 
+            }
+
             Self::advance_animation(&mut s, &mut a, dt); 
             
             // Apply the animation's offset, if it exists

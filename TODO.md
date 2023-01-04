@@ -2,12 +2,14 @@
 - LoS shadow casting
 - Non-dithered setting
 - Coloured lighting
+- Cone light
 
 # Sprites
 - Rotation
 - Introduce flipping in animations (cutting sprites in half in many cases)
 - Icons/UI sprites
 - Zooming
+- Mountpoints
 
 # ECS
 - Walls/Floors/Decals
@@ -21,8 +23,7 @@
 - Additional states (weapons etc)
 
 # Animation Controller
-- Create a more usable system of Animation management, perhaps custom animation states
-  that store relevant data and can be accessed/swapped to easily
+- Make API more usable
 
 # Camera controller
 - Camera smoothing (give camera a target location and have it womp over to it with high accel)
@@ -30,10 +31,7 @@
 - Allow for different camera modes (aim at cursor, look-ahead, soft follow, hard follow etc)
 
 # Collisions
-- Implement nphysics to allow for better general collisions (and maybe physics xd)
-- Quadtrees (instead of N^2 test)
-- Basic movement collision built in to engine (leaving collision event accessible for secondary
-  systems defined by dev)
+- Implement ncollide to allow for better general collisions (and maybe physics xd)
 
 # Debugging
 - Create a debug renderer for drawing arbitrary rectangles

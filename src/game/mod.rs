@@ -1,4 +1,4 @@
-#![allow(unused_variables, unused_imports, dead_code)]
+#![allow(unused_imports, dead_code)]
 use std::rc::Rc;
 use std::collections::HashMap;
 use nalgebra_glm::{Vec2, Vec3, Vec4, vec2};
@@ -11,7 +11,7 @@ use stoneng::ecs::{
     system,
     component,
 };
-use stoneng::event::{KeyEvent, KeyCode, ElementState, MouseBtnEvent, MouseButton};
+use stoneng::event::{KeyEvent, KeyCode, ElementState, MouseButton};
 use stoneng::{
     self, 
     model::spritesheet::SpriteSheet,
@@ -59,7 +59,6 @@ impl<'a> GameState<'a> {
     }
 }
 
-
 impl<'a> stoneng::EngineCore for GameState<'a> {
     fn init(&mut self){
         // Setup ECS
@@ -87,30 +86,36 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
             .build();
  
         dispatcher.setup(&mut world);
-        let tile = self.spritesheet.sprites
+        let player_tile = self.spritesheet.sprites
                 .get("human").unwrap()
-                .variants.get("unarmed").unwrap()
+                .variants.get("gun").unwrap()
                 .clone();
+
+
+        let zombie_tile = self.spritesheet.sprites
+                .get("zombie").unwrap()
+                .clone();
+
         let mut pos = component::Position { x: 32.0, y: 32.0, z: -5.0 };
         let scale = component::Scale { x: 5.0, y: 5.0 };
         world.create_entity()
             .with(pos.clone())
             .with(scale.clone())
             .with(component::Color::default())
-            .with(component::Sprite::from(tile.clone())) 
+            .with(component::Sprite::from(zombie_tile.clone())) 
             .build();
 
         pos.x = 100.0;
         pos.y = 100.0;
-        let player_anim = tile.animations.get("idle"); 
-        let player_size = (self.spritesheet.tile_width-3) as f32 * scale.x;
+        let player_anim = player_tile.animations.get("idle"); 
+        let player_size = (self.spritesheet.tile_width-2) as f32 * scale.x;
         let player_entity = world.create_entity()
                 .with(pos)
                 .with(scale)
                 .with(component::Color::default())
-                .with(component::Sprite::from(tile.clone()))
+                .with(component::Sprite::from(player_tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight::new(400.0))
+                .with(component::PointLight::new_scaled(75.0))
                 .with(component::Velocity { x: 0.0, y: 0.0 })
                 .with(component::Collider::new(player_size, player_size))
                 .with(component::Text{ 
@@ -129,7 +134,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                 .expect(r#""crosshair" sprite could not be found"#)
                 .clone();
 
-        let cursor_size = (self.spritesheet.tile_width-2) as f32 * 3.0;
+        let cursor_size = (self.spritesheet.tile_width-1) as f32 * 3.0;
         self.cursor = Some(
             world.create_entity()
                 .with(component::Position { x:0.0, y:0.0, z:1.0 })
@@ -302,33 +307,28 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
     }
 
     fn mouse_btn(&mut self, event: event::MouseBtnEvent){
-        match event.button {
-            MouseButton::Left => {
-                if event.state == ElementState::Pressed {
-                    let world = unwrap_or_return!(&mut self.world);
-                    let view = *world.read_resource::<resource::View>();
-                    let cursor = unwrap_or_return!(&self.cursor);
-                    let positions = world.read_component::<component::Position>();
-                    let pos = positions.get(*cursor).unwrap().clone();
-                    std::mem::drop(positions);
+        if event.button == MouseButton::Left && event.state == ElementState::Released {
+            let world = unwrap_or_return!(&mut self.world);
+            let view = *world.read_resource::<resource::View>();
+            let cursor = unwrap_or_return!(&self.cursor);
+            let positions = world.read_component::<component::Position>();
+            let pos = positions.get(*cursor).unwrap().clone();
+            std::mem::drop(positions);
 
-                    let tile = self.spritesheet.sprites
-                        .get("crosshair").unwrap()
-                        .clone();
+            let sprite = self.spritesheet.sprites
+                .get("muzzle-flash").unwrap()
+                .clone();
 
-                    world.create_entity()
-                        .with(pos)
-                        .with(component::Color::default())
-                        .with(component::Scale { x: 5.0, y: 5.0 })
-                        .with(component::Scaling::with_thresh(0.99, 0.25))
-                        .with(component::Sprite::from(tile.clone()))
-                        .with(component::PointLight::new_scaled(25.0))
-                        .build();
-                }
-            },
-            MouseButton::Right => {},
-            MouseButton::Middle => {},
-            MouseButton::Other(_) => {},
+            let flash_anim = sprite.animations.get("");
+
+            world.create_entity()
+                .with(pos)
+                .with(component::Color::default())
+                .with(component::Scale { x: 3.0, y: 3.0 })
+                .with(component::Sprite::from(sprite.clone()))
+                .with(component::Animation::from(flash_anim))
+                .with(component::PointLight::new_scaled(50.0))
+                .build();
         }
     }
 

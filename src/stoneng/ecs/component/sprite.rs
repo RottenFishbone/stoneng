@@ -64,12 +64,15 @@ impl From<(&Sprite, &Position, &Scale, &Color)> for RenderSprite {
     }
 }
 
+
+
 #[derive(Debug, Component, Clone)]
 #[storage(DenseVecStorage)]
 pub struct Animation {
     pub frame:          u8,
     pub frame_progress: f32,
     pub is_reversing:   bool,
+    pub is_done:        bool,
     pub schema:         Option<Arc<AnimationSchema>>,
 }
 impl Animation {
@@ -85,11 +88,11 @@ impl From<Option<&Arc<AnimationSchema>>> for Animation {
             Some(anim) => Some(anim.clone()),
             None => None,
         };
-
         Self {
             frame: 0,
             frame_progress: 0.0,
             is_reversing: false,
+            is_done: false,
             schema: anim,
         }
     }
