@@ -8,15 +8,14 @@ pub struct Position {
     pub y: f32,
     pub z: f32,
 }
-impl Into<glm::Vec3> for Position {
-    fn into(self) -> glm::Vec3 {
-        glm::Vec3::from([self.x, self.y, self.z])
-    }
+impl From<Position> for glm::Vec3 {
+    fn from(p: Position) -> Self { Self::from([p.x, p.y, p.z]) }
 }
-impl Into<(f32, f32, f32)> for Position {
-    fn into(self) -> (f32, f32, f32) {
-        (self.x, self.y, self.z)
-    }
+impl From<Position> for (f32, f32, f32) {
+    fn from(p: Position) -> Self { (p.x, p.y, p.z) }
+}
+impl From<(f32,f32,f32)> for Position {
+    fn from(v: (f32,f32,f32)) -> Self { Self {x: v.0, y: v.1, z: v.2} }
 }
 
 #[repr(C)]
@@ -26,6 +25,7 @@ pub struct Scale {
     pub x: f32,
     pub y: f32,
 }
+// TODO change to From<Scale>
 impl Into<(f32,f32)> for Scale {
     fn into(self) -> (f32,f32) {
         (self.x, self.y)

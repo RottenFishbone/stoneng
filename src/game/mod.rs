@@ -11,7 +11,7 @@ use stoneng::ecs::{
     system,
     component,
 };
-use stoneng::event::{KeyEvent, KeyCode, ElementState};
+use stoneng::event::{KeyEvent, KeyCode, ElementState, MouseBtnEvent, MouseButton};
 use stoneng::{
     self, 
     model::spritesheet::SpriteSheet,
@@ -75,6 +75,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
         // Creates the system dispatcher, the order here is important
         let mut dispatcher = DispatcherBuilder::new()
             .with(system::collision::CollisionSys, "collision", &[])
+            .with(system::particle::ParticleSys, "particle", &[])
             .with(system::movement::VelocitySys, "velocity", &[])
             .with(system::sprite::AnimSpriteSys, "anim_sprite", &[])
             // thread_local must be used with OpenGL systems as OpenGL only runs on main thread
@@ -102,14 +103,14 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
         pos.x = 100.0;
         pos.y = 100.0;
         let player_anim = tile.animations.get("idle"); 
-        let player_size = (self.spritesheet.tile_width-2) as f32 * scale.x;
+        let player_size = (self.spritesheet.tile_width-3) as f32 * scale.x;
         let player_entity = world.create_entity()
                 .with(pos)
                 .with(scale)
                 .with(component::Color::default())
                 .with(component::Sprite::from(tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight { intensity: 400.0 })
+                .with(component::PointLight::new(400.0))
                 .with(component::Velocity { x: 0.0, y: 0.0 })
                 .with(component::Collider::new(player_size, player_size))
                 .with(component::Text{ 
@@ -128,7 +129,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                 .expect(r#""crosshair" sprite could not be found"#)
                 .clone();
 
-        let cursor_size = (self.spritesheet.tile_width-1) as f32 * 3.0;
+        let cursor_size = (self.spritesheet.tile_width-2) as f32 * 3.0;
         self.cursor = Some(
             world.create_entity()
                 .with(component::Position { x:0.0, y:0.0, z:1.0 })
@@ -300,7 +301,36 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
         }
     }
 
-    fn mouse_btn(&mut self, event: event::MouseBtnEvent){}
+    fn mouse_btn(&mut self, event: event::MouseBtnEvent){
+        match event.button {
+            MouseButton::Left => {
+                if event.state == ElementState::Pressed {
+                    let world = unwrap_or_return!(&mut self.world);
+                    let view = *world.read_resource::<resource::View>();
+                    let cursor = unwrap_or_return!(&self.cursor);
+                    let positions = world.read_component::<component::Position>();
+                    let pos = positions.get(*cursor).unwrap().clone();
+                    std::mem::drop(positions);
+
+                    let tile = self.spritesheet.sprites
+                        .get("crosshair").unwrap()
+                        .clone();
+
+                    world.create_entity()
+                        .with(pos)
+                        .with(component::Color::default())
+                        .with(component::Scale { x: 5.0, y: 5.0 })
+                        .with(component::Scaling::with_thresh(0.99, 0.25))
+                        .with(component::Sprite::from(tile.clone()))
+                        .with(component::PointLight::new_scaled(25.0))
+                        .build();
+                }
+            },
+            MouseButton::Right => {},
+            MouseButton::Middle => {},
+            MouseButton::Other(_) => {},
+        }
+    }
 
     fn cursor_moved(&mut self, x: f64, y: f64) {
         self.cursor_pos = (x, y);

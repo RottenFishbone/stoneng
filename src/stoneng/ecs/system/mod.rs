@@ -3,7 +3,7 @@ pub mod light;
 pub mod text;
 pub mod movement;
 pub mod collision;
-
+pub mod particle;
 
 use specs::prelude::*;
 

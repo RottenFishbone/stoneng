@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema},
     ecs::resource::{DeltaTime, WindowSize, View},
-    ecs::component::{Color, Sprite, Position, Animation, PointLight},
+    ecs::component::{Position, PointLight, Scale},
     renderer::{
         sprite::{RenderSprite, SpriteRenderer}, 
         light::{RenderLight, LightRenderer},
@@ -22,15 +22,23 @@ pub struct LightRenderSys {
 impl<'a> System<'a> for LightRenderSys {
     type SystemData = (ReadStorage<'a, Position>,
                        ReadStorage<'a, PointLight>,
+                       ReadStorage<'a, Scale>,
                        Read<'a, WindowSize>,
                        Read<'a, View>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (pos, lights, window, view) = data;
+        let (posns, lights, scales, window, view) = data;
         let window = (window.0, window.1);
         let view = (view.0, view.1, view.2);
-        let lights: Vec<RenderLight> = (&pos, &lights).join()
-            .map(|data| data.into())
+        let lights: Vec<RenderLight> = (&posns, &lights, scales.maybe()).join()
+            .map(|(pos, light, scale)| {
+                let intensity = if light.scaled && scale.is_some() { 
+                    let scale = scale.unwrap();
+                    light.intensity * scale.x.max(scale.y)
+                } else { light.intensity };
+
+                RenderLight { pos: (pos.x, pos.y), intensity }
+            })
             .collect();
 
         self.renderer.render(&lights, window, view);
