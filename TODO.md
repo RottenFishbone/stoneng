@@ -4,6 +4,12 @@
 - Coloured lighting
 - Cone light
 
+# Audio
+- Embedded Audio File manager?
+- Per sound settings (speed, volume etc)
+- *Manual queue management*
+- *Positional Audio*
+
 # Sprites
 - Rotation
 - Introduce flipping in animations (cutting sprites in half in many cases)

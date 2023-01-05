@@ -16,7 +16,7 @@ use glm::{Vec2, Vec3, Vec4};
 pub struct SpriteSheet {
     /// The path to the image file this data describes.
     #[serde(default)]
-    path:               String,
+    img_ref:            Option<&'static [u8]>,
     /// Pixel width of the sprite sheet.
     pub sheet_width:    u32,
     /// Pixel width of a single sprite tile.
@@ -26,17 +26,17 @@ pub struct SpriteSheet {
 }
 
 impl SpriteSheet {
-    /// Takes a spritesheet layout in Rusty Object Notation, as well as a path to 
-    /// the image that the layout describes.
-    /// 
-    /// The path to the image is not tested and will result in a read error on shader
-    /// compilation if an invalid path is used.
+
+    /// Loads a spritesheet image and parses its Rusty Object Notation layout file.
     ///
-    /// Note: the max sheet resolution is 255 tiles x 255 tiles
+    /// Note: the max sheet resolution is 255 tiles x 255 *tiles*
     ///
     /// # Example 
     /// ```
-    /// # use stoneng::sprite::*;
+    /// # use stoneng::{model::spritesheet::SpriteSheet};
+    /// // Using this file as example, normally an image would go here
+    /// let img_data = include_bytes!("./spritesheet.rs");
+    /// // i.e. let img_data = include_bytes("example.png");
     /// let layout = r#"
     /// SpriteSheet ( 
     ///     sheet_width:    256,
@@ -72,48 +72,24 @@ impl SpriteSheet {
     ///     }
     /// )
     /// "#;
-    /// let sheet = SpriteSheet::from_string(
-    ///                 layout.into(), 
-    ///                 "path/to/img.png".into()
-    ///             ).unwrap(); 
+    /// let sheet = SpriteSheet::new(layout, img_data).unwrap();
     ///
     /// // Check the sheet contains valid entries
     /// assert_eq!(sheet.sheet_width, 256);
     /// assert_eq!(sheet.sprites["arch"].root, 9);
     /// assert!(sheet.sprites["water"].animations.contains_key("idle"));
     /// ```
-    pub fn from_string(layout: String, path_to_img: String) -> Result<Self, EngineError> {
-        // Deserialize the layout
-        let mut sheet = ron::from_str::<SpriteSheet>(&layout)?;
-        // Store the img path
-        sheet.path = path_to_img;
+    pub fn new(layout: &'static str, img_ref: &'static [u8]) -> Result<Self, EngineError> {
+        let mut sheet = ron::from_str::<SpriteSheet>(layout)?;
+        sheet.img_ref = Some(img_ref);
+
         if sheet.sheet_width / sheet.tile_width > 255 {
             return Err(EngineError::SheetSizeError("Maximum tiles per row is 255".into()));
         }
-        Ok(sheet)   
+        return Ok(sheet);
     }
 
-    /// Takes a path to a sprite sheet layout file and deserializes it into a SpriteSheet.
-    ///
-    /// The layout file should be saved alongside the spritesheet image. It should be in Rusty 
-    /// Object Notation. An example can be found in SpriteSheet::from_string().
-    ///
-    /// Note: the max sheet resolution is 255 tiles x 255 tiles
-    pub fn from_layout(path_to_layout: String) -> Result<Self, EngineError> {
-        // Load the layout file
-        let filepath = path::PathBuf::from(&path_to_layout);
-        let layout_string = std::fs::read_to_string(&filepath)?; 
-
-        // Find the image's path
-        let mut img_path = filepath.clone();
-        img_path.set_extension("png");
-        let img_path_str = img_path.to_string_lossy().to_string();
-        
-        // Parse the layout_string
-        SpriteSheet::from_string(layout_string, img_path_str)
-    }
-    
-    pub fn get_img_path(&self) -> &str { &self.path[..] }
+    pub fn img_ref(&self) -> &'static [u8] { self.img_ref.unwrap() }
 }
 
 #[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq)]

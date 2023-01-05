@@ -29,3 +29,5 @@ ron = "0.6.5"
 lazy_static = "1.4"
 rand = "*"
 
+# Audio (fork with Sink patch, waiting for PR merge (hopefully))
+rodio = { git="https://github.com/RottenFishbone/rodio" }

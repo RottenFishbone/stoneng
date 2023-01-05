@@ -5,7 +5,7 @@ use crate::ecs::component;
 use crate::error::EngineError;
 use crate::{
     model::spritesheet::{SpriteSheet, AnimationSchema, AnimMode},
-    ecs::resource::{DeltaTime, WindowSize, View, SpritesheetPath},
+    ecs::resource::{DeltaTime, WindowSize, View, SpritesheetImgRef},
     ecs::component::{Color, Sprite, Position, Scale, Animation, tile::*},
     renderer::sprite::{RenderSprite, SpriteRenderer},
     renderer::light::{RenderLight, LightRenderer},
@@ -208,13 +208,8 @@ impl<'a> System<'a> for SpriteRenderSys {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.renderer = SpriteRenderer::new();
-        let sheet = world.fetch::<SpritesheetPath>();
-        let atlas_path = PathBuf::from(&sheet.0[..]);
-        let mut atlas_file = std::fs::File::open(atlas_path)
-            .expect("Spritesheet image could not be found alongside its definition");
-        let mut atlas_data = Vec::new();
-        atlas_file.read_to_end(&mut atlas_data).unwrap();
-        self.renderer.init(&atlas_data[..]).unwrap();
+        let sheet = world.fetch::<SpritesheetImgRef>();
+        self.renderer.init(sheet.0).unwrap();
     }
 }
 

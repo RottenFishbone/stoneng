@@ -9,7 +9,7 @@ pub mod renderer;
 pub mod ecs;
 pub mod controller;
 
-pub mod quadtree;
+pub mod audio;
 
 mod shader;
 mod error;

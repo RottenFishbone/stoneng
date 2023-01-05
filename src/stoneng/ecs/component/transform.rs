@@ -8,6 +8,9 @@ pub struct Position {
     pub y: f32,
     pub z: f32,
 }
+impl Position {
+    pub fn new(x: f32, y: f32, z: f32) -> Self { Self { x, y, z } }
+}
 impl From<Position> for glm::Vec3 {
     fn from(p: Position) -> Self { Self::from([p.x, p.y, p.z]) }
 }
@@ -24,6 +27,9 @@ impl From<(f32,f32,f32)> for Position {
 pub struct Scale {
     pub x: f32,
     pub y: f32,
+}
+impl Scale {
+    pub fn new(x: f32, y: f32) -> Self { Self { x, y } }
 }
 // TODO change to From<Scale>
 impl Into<(f32,f32)> for Scale {
@@ -43,4 +49,7 @@ impl Default for Scale { fn default() -> Self { Self {x: 1.0, y: 1.0} } }
 #[storage(VecStorage)]
 pub struct Rotation {
     pub deg: f32,
+}
+impl Rotation {
+    pub fn new(deg: f32) -> Self { Self {  deg } }
 }

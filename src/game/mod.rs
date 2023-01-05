@@ -1,6 +1,7 @@
 #![allow(unused_imports, dead_code)]
 use std::rc::Rc;
 use std::collections::HashMap;
+use std::sync::Arc;
 use nalgebra_glm::{Vec2, Vec3, Vec4, vec2};
 
 use rand::Rng;
@@ -14,6 +15,7 @@ use stoneng::ecs::{
 use stoneng::event::{KeyEvent, KeyCode, ElementState, MouseButton};
 use stoneng::{
     self, 
+    audio::AudioEngine,
     model::spritesheet::SpriteSheet,
     controller::player,
     event,
@@ -32,6 +34,8 @@ macro_rules! unwrap_or_return {
 }
 
 pub struct GameState<'a> {
+    audio:              Option<AudioEngine>,
+
     spritesheet:        SpriteSheet,
     world:              Option<World>,
     dispatcher:         Option<Dispatcher<'a, 'a>>,
@@ -45,8 +49,13 @@ pub struct GameState<'a> {
 
 impl<'a> GameState<'a> {
     pub fn new() -> Self {
+        let spritesheet_layout = include_str!("../../assets/textures/sprites.ron");
+        let spritesheet_data = include_bytes!("../../assets/textures/sprites.png");
+
         Self {
-            spritesheet: SpriteSheet::from_layout("assets/textures/sprites.ron".into()).unwrap(),
+            audio: None,
+
+            spritesheet: SpriteSheet::new(spritesheet_layout, spritesheet_data).unwrap(),
             world: None,
             dispatcher: None,
             time: std::time::Instant::now(),
@@ -61,9 +70,13 @@ impl<'a> GameState<'a> {
 
 impl<'a> stoneng::EngineCore for GameState<'a> {
     fn init(&mut self){
+        self.audio = Some(AudioEngine::launch(3));
+        self.audio.as_mut().unwrap().set_volume(stoneng::audio::AudioType::Music, 0.5);
+        self.audio.as_ref().unwrap().play_music();
+        
         // Setup ECS
         let mut world = World::new();
-        world.insert(resource::SpritesheetPath(self.spritesheet.get_img_path().into()));
+        world.insert(resource::SpritesheetImgRef(self.spritesheet.img_ref()));
         world.insert(resource::DeltaTime(0.0));
         world.insert(resource::WindowSize(800.0, 600.0));
         world.insert(resource::View(0.0 ,0.0, 0.0));
@@ -96,7 +109,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                 .get("zombie").unwrap()
                 .clone();
 
-        let mut pos = component::Position { x: 32.0, y: 32.0, z: -5.0 };
+        let mut pos = component::Position { x: 0.0, y: 0.0, z: -5.0 };
         let scale = component::Scale { x: 5.0, y: 5.0 };
         world.create_entity()
             .with(pos.clone())
@@ -115,8 +128,8 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                 .with(component::Color::default())
                 .with(component::Sprite::from(player_tile.clone()))
                 .with(component::Animation::from(player_anim))
-                .with(component::PointLight::new_scaled(75.0))
-                .with(component::Velocity { x: 0.0, y: 0.0 })
+                .with(component::PointLight::new_scaled(50.0))
+                .with(component::Velocity::new(0.0, 0.0))
                 .with(component::Collider::new(player_size, player_size))
                 .with(component::Text{ 
                     content: String::from("Bobert"), size: 2.0, offset: (-25.0, 45.0) 
@@ -137,8 +150,8 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
         let cursor_size = (self.spritesheet.tile_width-1) as f32 * 3.0;
         self.cursor = Some(
             world.create_entity()
-                .with(component::Position { x:0.0, y:0.0, z:1.0 })
-                .with(component::Scale { x: 3.0, y: 3.0 })
+                .with(component::Position::new(0.0, 0.0, 1.0))
+                .with(component::Scale::new(3.0, 3.0))
                 .with(component::Collider::new(cursor_size, cursor_size))
                 .with(component::Sprite::from(cursor_sprite))
                 .with(component::Color::default())
@@ -299,7 +312,7 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                     _ => (0.0, 0.0),
                 };
 
-                let mut view_res = world.write_resource::<resource::View>();
+                let mut view_res   = world.write_resource::<resource::View>();
                 let (x,y,z) = (view_res.0, view_res.1, view_res.2);
                 *view_res = resource::View(x + dv.0, y + dv.1, z);
             }
@@ -329,6 +342,10 @@ impl<'a> stoneng::EngineCore for GameState<'a> {
                 .with(component::Animation::from(flash_anim))
                 .with(component::PointLight::new_scaled(50.0))
                 .build();
+
+            self.audio.as_ref().unwrap().play_sfx();
+        }
+        if event.button == MouseButton::Right && event.state == ElementState::Pressed {
         }
     }
 

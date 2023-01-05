@@ -2,7 +2,7 @@ use shrev::EventChannel;
 use specs::Entity;
 
 #[derive(Default, Clone, Debug)]
-pub struct SpritesheetPath(pub String);
+pub struct SpritesheetImgRef(pub &'static [u8]);
 
 #[derive(Default, Clone, Copy, Debug)]
 pub struct DeltaTime(pub f64);
